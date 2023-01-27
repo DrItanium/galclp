@@ -72,6 +72,12 @@
                             assign
                             ?dest
                             $?expression))
+(deffunction *identity
+             (?a)
+             (defexpression FALSE
+                            identity
+                            ?a))
+
 
 (deffunction *xor
              (?a ?b)
@@ -98,6 +104,7 @@
                     (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
 
 (defrule MAIN::fix-parents
+         (declare (salience 10000))
          ?child <- (object (is-a expression)
                            (parent FALSE)
                            (name ?n))
@@ -107,5 +114,58 @@
          =>
          (modify-instance ?child 
                           (parent ?parent)))
+(defrule MAIN::recompute-parent-success
+         (declare (salience 10000))
+         ?f <- (recompute parents for ?contents)
+         ?x <- (object (is-a expression)
+                       (name ?contents))
+         =>
+         (retract ?f)
+         (modify-instance ?x 
+                          (parent FALSE)))
 
+(defrule MAIN::recompute-parent-fail
+         (declare (salience 10000))
+         ?f <- (recompute parents for ?contents)
+         (test (not (instancep ?contents)))
+         =>
+         (retract ?f))
+
+
+
+(defrule MAIN::eliminate-not-not
+         "(not (not ?)) should be factored out to ?!"
+         ?nested <- (object (is-a expression)
+                            (kind not)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children ?contents))
+         ?p <- (object (is-a expression)
+                       (kind not)
+                       (name ?parent)
+                       (children ?nest))
+         =>
+         (unmake-instance ?nested )
+         ; turn not-not into an identity node instead
+         (assert (recompute parents for ?contents))
+         (modify-instance ?p
+                          (kind identity)
+                          (children ?contents)))
+
+(defrule MAIN::eliminate-identity-identity
+         "(ident (ident ?)) should be flattened"
+         ?nested <- (object (is-a expression)
+                            (kind identity)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children ?contents))
+         ?p <- (object (is-a expression)
+                       (kind identity)
+                       (name ?parent)
+                       (children ?nest))
+         =>
+         (unmake-instance ?nested)
+         (assert (recompute parents for ?contents))
+         (modify-instance ?p 
+                          (children ?contents)))
 
