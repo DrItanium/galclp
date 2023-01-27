@@ -215,15 +215,6 @@
          (modify-instance ?p
                           (children ?contents)))
 
-(defrule MAIN::and/or-is-idempotent
-         "Turn (and/or $? A $? A $?) into (and $? A $? $?)"
-         ?thing <- (object (is-a expression)
-                           (kind and|or)
-                           (children $?a ?b $?c ?b $?d))
-         =>
-         (modify-instance ?thing
-                          (children $?a ?b $?c $?d)))
-
 (defrule MAIN::merge-or-statements
          ?nested <- (object (is-a expression)
                             (kind or)
