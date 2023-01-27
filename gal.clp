@@ -102,7 +102,10 @@
              (*mux21 ?c2
                     (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
                     (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
-
+(deffunction recompute-parent
+             (?thing)
+             (assert (recompute parents for ?thing)))
+;; parent recompute operations
 (defrule MAIN::fix-parents
          (declare (salience 10000))
          ?child <- (object (is-a expression)
@@ -134,7 +137,7 @@
 
 
 (defrule MAIN::eliminate-not-not
-         "(not (not ?)) should be factored out to ?!"
+         "(not (not ?)) should be factored out to an identity node"
          ?nested <- (object (is-a expression)
                             (kind not)
                             (parent ?parent)
@@ -146,8 +149,8 @@
                        (children ?nest))
          =>
          (unmake-instance ?nested )
+         (recompute-parent ?contents)
          ; turn not-not into an identity node instead
-         (assert (recompute parents for ?contents))
          (modify-instance ?p
                           (kind identity)
                           (children ?contents)))
@@ -165,7 +168,7 @@
                        (children ?nest))
          =>
          (unmake-instance ?nested)
-         (assert (recompute parents for ?contents))
+         (recompute-parent ?contents)
          (modify-instance ?p 
                           (children ?contents)))
 
