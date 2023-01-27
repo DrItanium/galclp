@@ -87,6 +87,12 @@
                             ?b))
              ;(*or (*and (*not ?a) ?b)
              ;     (*and ?a (*not ?b))))
+(deffunction *neq
+             (?a ?b)
+             (*xor ?a ?b))
+(deffunction *eq
+             (?a ?b)
+             (*not (*neq ?a ?b)))
 (defgeneric *nand)
 (defgeneric *nor)
 (defmethod *nand
@@ -103,7 +109,7 @@
                  ?a
                  ?b))
 (defmethod *nor (?a) (*nor ?a ?a))
-
+;; @todo add support for multiple parents for sub expressions
 (deffunction *mux21
              (?cond ?a ?b)
              (*or (*and (*not ?cond) ?a)
