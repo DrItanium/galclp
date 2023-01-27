@@ -22,4 +22,73 @@
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
 
+(defclass MAIN::expression
+  (is-a USER)
+  (slot parent
+        (type INSTANCE
+              SYMBOL)
+        (allowed-symbols FALSE)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot kind
+        (type LEXEME)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (multislot children
+             (storage local)
+             (visibility public)))
+(deffunction defexpression
+             (?parent ?kind $?children)
+             (make-instance of expression
+                            (kind ?kind)
+                            (parent ?parent)
+                            (children $?children)))
+(deffunction *and
+             (?a ?b $?rest)
+             (defexpression FALSE 
+                            and 
+                            ?a 
+                            ?b 
+                            $?rest))
+(deffunction *or
+             (?a ?b $?rest)
+             (defexpression FALSE 
+                            or 
+                            ?a 
+                            ?b 
+                            $?rest))
+
+(deffunction *not
+             (?a)
+             (defexpression FALSE
+                            not
+                            ?a))
+
+(deffunction *assign
+             (?dest $?expression)
+             (defexpression FALSE
+                            assign
+                            ?dest
+                            $?expression))
+
+(deffunction *xor
+             (?a ?b)
+             (*or (*and (*not ?a) ?b)
+                  (*and ?a (*not ?b))))
+(deffunction *nand
+             (?a ?b)
+             (*not (*and ?a ?b)))
+
+(defrule MAIN::fix-parents
+         ?child <- (object (is-a expression)
+                           (parent FALSE)
+                           (name ?n))
+         (object (is-a expression)
+                 (children $? ?n $?)
+                 (name ?parent))
+         =>
+         (modify-instance ?child 
+                          (parent ?parent)))
 
