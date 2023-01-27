@@ -81,6 +81,22 @@
              (?a ?b)
              (*not (*and ?a ?b)))
 
+(deffunction *mux21
+             (?cond ?a ?b)
+             (*or (*and (*not ?cond) ?a)
+                  (*and ?cond ?b)))
+
+(deffunction *mux42
+             (?c0 ?c1 ?a ?b ?c ?d)
+             (*mux21 ?c1
+                    (*mux21 ?c0 ?a ?b)
+                    (*mux21 ?c0 ?c ?d)))
+(deffunction *mux83
+             (?c0 ?c1 ?c2 ?a ?b ?c ?d ?e ?f ?g ?h)
+             (*mux21 ?c2
+                    (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
+                    (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
+
 (defrule MAIN::fix-parents
          ?child <- (object (is-a expression)
                            (parent FALSE)
@@ -91,4 +107,5 @@
          =>
          (modify-instance ?child 
                           (parent ?parent)))
+
 
