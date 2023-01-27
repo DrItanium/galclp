@@ -103,7 +103,7 @@
                     (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
                     (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
 (deffunction recompute-parent
-             (?thing)
+             ($?thing)
              (assert (recompute parents for ?thing)))
 ;; parent recompute operations
 (defrule MAIN::fix-parents
@@ -119,22 +119,30 @@
                           (parent ?parent)))
 (defrule MAIN::recompute-parent-success
          (declare (salience 10000))
-         ?f <- (recompute parents for ?contents)
+         ?f <- (recompute parents for ?contents $?rest)
          ?x <- (object (is-a expression)
                        (name ?contents))
          =>
          (retract ?f)
+         (recompute-parent $?rest)
          (modify-instance ?x 
                           (parent FALSE)))
 
 (defrule MAIN::recompute-parent-fail
          (declare (salience 10000))
-         ?f <- (recompute parents for ?contents)
+         ?f <- (recompute parents for ?contents $?rest)
          (test (not (instancep ?contents)))
          =>
+         (retract ?f)
+         (recompute-parent ?rest))
+
+(defrule MAIN::recompute-parent-done
+         ?f <- (recompute parents for)
+         =>
          (retract ?f))
+;; 
 
-
+;; reductions
 
 (defrule MAIN::eliminate-not-not
          "(not (not ?)) should be factored out to an identity node"
@@ -171,4 +179,64 @@
          (recompute-parent ?contents)
          (modify-instance ?p 
                           (children ?contents)))
+
+(defrule MAIN::identity-not-merge
+         "(identity (not)) => not"
+         ?nested <- (object (is-a expression)
+                            (kind not)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children ?contents))
+         ?p <- (object (is-a expression)
+                       (kind identity)
+                       (name ?parent)
+                       (children ?nest))
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?contents)
+         (modify-instance ?p
+                          (kind not)
+                          (children ?contents)))
+
+(defrule MAIN::not-identity-merge
+         "(not (identity)) => not"
+         ?nested <- (object (is-a expression)
+                            (kind identity)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children ?contents))
+         ?p <- (object (is-a expression)
+                       (kind not)
+                       (name ?parent)
+                       (children ?nest))
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?contents)
+         (modify-instance ?p
+                          (children ?contents)))
+
+(defrule MAIN::and/or-is-idempotent
+         "Turn (and/or $? A $? A $?) into (and $? A $? $?)"
+         ?thing <- (object (is-a expression)
+                           (kind and|or)
+                           (children $?a ?b $?c ?b $?d))
+         =>
+         (modify-instance ?thing
+                          (children $?a ?b $?c $?d)))
+
+(defrule MAIN::merge-or-statements
+         ?nested <- (object (is-a expression)
+                            (kind or)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children $?contents))
+         ?p <- (object (is-a expression)
+                       (kind or)
+                       (name ?parent)
+                       (children $?a ?nest $?b))
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?contents)
+         (modify-instance ?p
+                          (children ?a ?contents ?b)))
 
