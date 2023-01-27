@@ -264,3 +264,20 @@
          (recompute-parent ?child)
          (modify-instance ?p 
                           (children ?child)))
+
+(defrule MAIN::convert-nor-to-not-if-makes-sense
+         ?nested <- (object (is-a expression)
+                            (kind or)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children ?child ?child))
+         ?p <- (object (is-a expression)
+                       (kind not)
+                       (name ?parent)
+                       (children ?nest))
+
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?child)
+         (modify-instance ?p 
+                          (children ?child)))
