@@ -81,11 +81,28 @@
 
 (deffunction *xor
              (?a ?b)
-             (*or (*and (*not ?a) ?b)
-                  (*and ?a (*not ?b))))
-(deffunction *nand
+             (defexpression FALSE
+                            xor
+                            ?a
+                            ?b))
+             ;(*or (*and (*not ?a) ?b)
+             ;     (*and ?a (*not ?b))))
+(defgeneric *nand)
+(defgeneric *nor)
+(defmethod *nand
              (?a ?b)
-             (*not (*and ?a ?b)))
+             (defexpression FALSE
+                            nand
+                            ?a
+                            ?b))
+(defmethod *nand (?a) (*nand ?a ?a))
+(defmethod *nor
+  (?a ?b)
+  (defexpression FALSE
+                 nor
+                 ?a
+                 ?b))
+(defmethod *nor (?a) (*nor ?a ?a))
 
 (deffunction *mux21
              (?cond ?a ?b)
@@ -281,3 +298,93 @@
          (recompute-parent ?child)
          (modify-instance ?p 
                           (children ?child)))
+
+(defrule MAIN::identity-and-merge
+         "(identity (and)) => and"
+         ?nested <- (object (is-a expression)
+                            (kind and)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children $?contents))
+         ?p <- (object (is-a expression)
+                       (kind identity)
+                       (name ?parent)
+                       (children ?nest))
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?contents)
+         (modify-instance ?p
+                          (kind and)
+                          (children $?contents)))
+
+(defrule MAIN::identity-or-merge
+         "(identity (or)) => or"
+         ?nested <- (object (is-a expression)
+                            (kind or)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children $?contents))
+         ?p <- (object (is-a expression)
+                       (kind identity)
+                       (name ?parent)
+                       (children ?nest))
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?contents)
+         (modify-instance ?p
+                          (kind or)
+                          (children $?contents)))
+
+(defrule MAIN::convert-nand-to-not
+         ?f <- (object (is-a expression)
+                       (kind nand)
+                       (children ?a ?b $?nodes))
+         (test (eq ?a ?b (expand$ ?nodes)))
+         =>
+         (modify-instance ?f 
+                          (kind not)
+                          (children ?a)))
+
+(defrule MAIN::convert-nand-to-and
+         ?f <- (object (is-a expression)
+                       (kind nand)
+                       (parent ?parent)
+                       (name ?this)
+                       (children $?children))
+         ?k <- (object (is-a expression)
+                       (kind not)
+                       (name ?parent)
+                       (children ?this))
+         =>
+         (unmake-instance ?f)
+         (recompute-parent ?children)
+         (modify-instance ?k 
+                          (kind and)
+                          (children $?children)))
+
+(defrule MAIN::convert-nor-to-not
+         ?f <- (object (is-a expression)
+                       (kind nor)
+                       (children ?a ?b $?nodes))
+         (test (eq ?a ?b (expand$ ?nodes)))
+         =>
+         (modify-instance ?f 
+                          (kind not)
+                          (children ?a)))
+
+(defrule MAIN::convert-nor-to-or
+         ?f <- (object (is-a expression)
+                       (kind nor)
+                       (parent ?parent)
+                       (name ?this)
+                       (children $?children))
+         ?k <- (object (is-a expression)
+                       (kind not)
+                       (name ?parent)
+                       (children ?this))
+         =>
+         (unmake-instance ?f)
+         (recompute-parent ?children)
+         (modify-instance ?k 
+                          (kind or)
+                          (children $?children)))
