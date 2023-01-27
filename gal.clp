@@ -247,3 +247,20 @@
          (recompute-parent ?contents)
          (modify-instance ?p
                           (children ?a ?contents ?b)))
+
+(defrule MAIN::convert-nand-to-not-if-makes-sense
+         ?nested <- (object (is-a expression)
+                            (kind and)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children ?child ?child))
+         ?p <- (object (is-a expression)
+                       (kind not)
+                       (name ?parent)
+                       (children ?nest))
+
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?child)
+         (modify-instance ?p 
+                          (children ?child)))
