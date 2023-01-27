@@ -240,3 +240,19 @@
          (modify-instance ?p
                           (children ?a ?contents ?b)))
 
+
+(defrule MAIN::merge-and-statements
+         ?nested <- (object (is-a expression)
+                            (kind and)
+                            (parent ?parent)
+                            (name ?nest)
+                            (children $?contents))
+         ?p <- (object (is-a expression)
+                       (kind and)
+                       (name ?parent)
+                       (children $?a ?nest $?b))
+         =>
+         (unmake-instance ?nested)
+         (recompute-parent ?contents)
+         (modify-instance ?p
+                          (children ?a ?contents ?b)))
