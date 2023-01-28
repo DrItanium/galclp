@@ -578,6 +578,14 @@
                              (args ?child))))
 
 (defrule MAIN::identify-leaf-nodes
-         (stage (current correlate))
+         (declare (salience -1))
+         (stage (current discovery))
          (object (is-a expression)
-                 (
+                 (name ?name))
+         (not (annotation (target ?name)
+                          (kind expression-node)))
+         =>
+         (assert (annotation (target ?name)
+                             (kind leaf-node)
+                             (args))))
+
