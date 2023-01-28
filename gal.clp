@@ -30,8 +30,18 @@
 (deffacts MAIN::stages
           (stage (current optimization-stage1)
                  (rest flatten
-                       optimization-stage2
+                       discovery
                        display)))
+(deftemplate MAIN::annotation
+             "A template fact you attach to instances indirectly to describe more information about them"
+             (slot target
+                   (type INSTANCE)
+                   (default ?NONE))
+             (slot kind
+                   (type LEXEME)
+                   (default ?NONE))
+             (multislot args
+                        (default ?NONE)))
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
 (defclass MAIN::expression
@@ -527,3 +537,29 @@
          =>
          (modify-instance ?f
                           (children ?a ?b ?c ?d)))
+
+(defrule MAIN::merge-redundant-annotations
+         ?f <- (annotation (target ?target)
+                           (kind ?k)
+                           (args $?args0))
+         ?f2 <- (annotation (target ?target)
+                            (kind ?k)
+                            (args $?args1))
+         (test (neq ?f ?f2))
+         =>
+         (modify ?f 
+                 (args ?args0 ?args1))
+         (retract ?f2))
+
+(defrule MAIN::annotate-child-expression-nodes
+         (stage (current discovery))
+         (object (is-a expression)
+                 (children $? ?child $?)
+                 (name ?name))
+         (object (is-a expression)
+                 (name ?child))
+         =>
+         (assert (annotation (target ?name)
+                             (kind expression-node)
+                             (args ?child))))
+
