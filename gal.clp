@@ -42,7 +42,12 @@
                    (default ?NONE))
              (slot reversible
                    (type SYMBOL)
-                   (default TRUE))
+                   (allowed-symbols TRUE
+                                    FALSE))
+             (slot order-is-important
+                   (type SYMBOL)
+                   (allowed-symbols FALSE
+                                    TRUE))
              (multislot args
                         (default ?NONE)))
 (deftemplate MAIN::annotation-clone-request
@@ -607,10 +612,20 @@
                            (args $?args))
          =>
          (progn$ (?a ?args)
-                 (assert (annotation (target ?a)
-                                     (reversible FALSE)
-                                     (kind (sym-cat reverse- ?kind))
-                                     (args ?target)))))
+                 (duplicate ?f
+                            (target ?a)
+                            (reversible FALSE)
+                            (kind (sym-cat reverse- ?kind))
+                            (args ?target))))
+
+(defrule MAIN::settify-annotation-args
+         "If the annotation isn't order dependent then it means you want it to only contain unique entries"
+         ?f <- (annotation (order-is-important FALSE)
+                           (args $?a ?b $?c ?b $?d))
+         =>
+         (modify ?f 
+                 (args ?a ?b ?c ?d)))
+
 
 (deffacts MAIN::clone-requests
           (annotation-clone-request (target-kind reverse-non-expression-node)
@@ -635,4 +650,3 @@
          =>
          (duplicate ?f 
                     (kind ?new-kind)))
-                           
