@@ -34,9 +34,6 @@
                        display)))
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
-(deffunction recompute-parent
-             ($?thing)
-             (assert (recompute parents for ?thing)))
 (defclass MAIN::expression
   (is-a USER)
   (slot parent
@@ -277,29 +274,6 @@
                                     (duplicate-instance ?n (parent FALSE))
                                     ?b)))
 
-(defrule MAIN::recompute-parent-success
-         (declare (salience 10000))
-         ?f <- (recompute parents for ?contents $?rest)
-         ?x <- (object (is-a expression)
-                       (name ?contents))
-         =>
-         (retract ?f)
-         (recompute-parent $?rest)
-         (modify-instance ?x 
-                          (parent FALSE)))
-
-(defrule MAIN::recompute-parent-fail
-         (declare (salience 10000))
-         ?f <- (recompute parents for ?contents $?rest)
-         (test (not (instancep ?contents)))
-         =>
-         (retract ?f)
-         (recompute-parent ?rest))
-
-(defrule MAIN::recompute-parent-done
-         ?f <- (recompute parents for)
-         =>
-         (retract ?f))
 (defrule MAIN::fulfill-parent-claims
          ?f <- (parent-claim (parent ?parent)
                              (target ?n))
@@ -338,7 +312,6 @@
                        (children ?nest))
          =>
          (unmake-instance ?nested ?p)
-         (recompute-parent ?node)
          ; turn not-not into an identity node instead
          (make-instance ?parent of identity-expression
                         (children ?node)))
@@ -354,7 +327,6 @@
                        (children ?nest))
          =>
          (unmake-instance ?nested)
-         (recompute-parent ?contents)
          (modify-instance ?p 
                           (children ?contents)))
 
@@ -371,7 +343,6 @@
                        (children ?nest))
          =>
          (unmake-instance ?nested ?p)
-         (recompute-parent ?contents)
          (make-instance ?parent of not-expression
                         (children ?contents)))
 
@@ -386,7 +357,6 @@
                        (children ?nest))
          =>
          (unmake-instance ?nested)
-         (recompute-parent ?contents)
          (modify-instance ?p
                           (children ?contents)))
 
@@ -418,7 +388,6 @@
                        (name ?parent)
                        (children $?a ?node $?b))
          =>
-         (recompute-parent ?nest)
          (unmake-instance ?nested)
          (modify-instance ?p 
                           (children ?a ?nest ?b)))
@@ -434,8 +403,6 @@
                        (children ?left ?right))
 
          =>
-         (recompute-parent ?left
-                           ?right)
          (unmake-instance ?f ?k)
          (make-instance ?top of or-expression
                         (children (*and ?other
@@ -455,8 +422,6 @@
                        (parent ?top)
                        (children ?left ?right))
          =>
-         (recompute-parent ?left
-                           ?right)
          (unmake-instance ?f ?k)
          (make-instance ?top of or-expression
                         (children (*and ?other 
@@ -479,7 +444,6 @@
                        (children ?orexp))
          =>
          (unmake-instance ?f ?k)
-         (recompute-parent $?children)
          (bind ?statements 
                (create$))
          (progn$ (?c ?children)
@@ -500,7 +464,6 @@
                        (children ?orexp))
          =>
          (unmake-instance ?f ?k)
-         (recompute-parent $?children)
          (bind ?statements 
                (create$))
          (progn$ (?c ?children)
@@ -518,7 +481,6 @@
                        (name ?name)
                        (children ?a ?a))
          =>
-         (recompute-parent ?a)
          (unmake-instance ?name)
          (make-instance ?name of identity-expression
                         (children ?a)))
@@ -554,7 +516,6 @@
                         (children $?a ?name $?b))
          =>
          (unmake-instance ?f)
-         (recompute-parent ?children)
          (modify-instance ?f2 
                           (children $?a ?children $?b)))
 
