@@ -61,12 +61,12 @@
 
 (deffunction *mux2->4
              (?c0 ?c1 ?a ?b ?c ?d)
-             (*mux21 ?c1
-                     (*mux21 ?c0 ?a ?b)
-                     (*mux21 ?c0 ?c ?d)))
+             (*mux1->2 ?c1
+                     (*mux1->2 ?c0 ?a ?b)
+                     (*mux1->2 ?c0 ?c ?d)))
 (deffunction *mux3->8
              (?c0 ?c1 ?c2 ?a ?b ?c ?d ?e ?f ?g ?h)
-             (*mux21 ?c2
-                     (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
-                     (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
+             (*mux1->2 ?c2
+                     (*mux2->4 ?c0 ?c1 ?a ?b ?c ?d)
+                     (*mux2->4 ?c0 ?c1 ?e ?f ?g ?h)))
 

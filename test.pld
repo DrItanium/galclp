@@ -39,9 +39,20 @@ M    NC   NC   NC   NC  EN0 EN3 EN2 EN1 VCC")
 
 (reset)
 (run)
-(bind ?title
-	  (gensym*))
-(open result.pld ?title "w")
-(send [the-pld] to-string ?title)
-(close ?title)
+(deffunction finish
+			 (?instance ?file)
+			 (bind ?title
+				   (gensym*))
+			 (if (open ?file ?title "w") then
+			   (send ?instance 
+					 to-string 
+					 ?title)
+			   (close ?title)
+			   else
+			   (printout stdout 
+						 "ERROR: could not open " ?file " for writing!"
+						 crlf)))
+				
+(finish [the-pld]
+		result.pld)
 (exit)
