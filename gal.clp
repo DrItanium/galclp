@@ -178,7 +178,8 @@
                               crlf
                               crlf
                               DESCRIPTION
-                              ?self:description))
+                              ?self:description
+                              crlf))
 
 
 (defgeneric *and)
