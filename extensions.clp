@@ -46,10 +46,26 @@
              (*neq ?a ?a))
 (deffunction *nand
              (?a ?b $?rest)
-             (*not (*and ?a ?b ?rest)))
+             (*not (*and ?a 
+                         ?b 
+                         $?rest)))
 (deffunction *nor
              (?a ?b $?rest)
-             (*not (*or ?a ?b ?rest)))
+             (*not (*or ?a 
+                        ?b 
+                        $?rest)))
+(deffunction *imply
+             (?p ?q)
+             (*or (*not ?p)
+                  ?q))
+(deffunction *nimply
+             (?p ?q)
+             (*and ?p
+                   (*not ?q)))
+(deffunction *converse-nonimplication
+             (?p ?q)
+             (*and (*not ?p)
+                   ?q))
 (deffunction *eq2
              (?a0 ?a1
                   ?b0 ?b1)

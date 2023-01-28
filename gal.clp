@@ -186,6 +186,11 @@
                  (left-child ?left)
                  (right-child ?right)))
 (defmethod *and
+  (?a ?b (?rest MULTIFIELD))
+  (*and ?a ?b 
+        (expand$ ?rest)))
+
+(defmethod *and
   (?a ?b $?rest)
   (*and (*and ?a ?b)
         (expand$ ?rest)))
@@ -200,6 +205,10 @@
   (?a ?b $?rest)
   (*or (*or ?a ?b)
        (expand$ ?rest)))
+(defmethod *or
+  (?a ?b (?rest MULTIFIELD))
+  (*or ?a ?b 
+        (expand$ ?rest)))
 
 
 (deffunction *not
