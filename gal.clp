@@ -65,10 +65,9 @@
 
 (defmessage-handler not-expression to-string primary
                     ()
-                    (str-cat " /" 
+                    (str-cat "/" 
                              (send (expand$ (first$ (dynamic-get children)))
-                                   to-string)
-                             " "))
+                                   to-string)))
 
 (defclass MAIN::identity-expression
   (is-a expression)
@@ -104,7 +103,7 @@
                                            " * " 
                                            (send ?a to-string)
                                            " ")))
-                    ?result)
+                    (str-cat "(" ?result")") )
 
 (defclass MAIN::or-expression
   (is-a expression)
@@ -126,7 +125,7 @@
                                            " + " 
                                            (send ?a to-string)
                                            " ")))
-                    ?result)
+                    (str-cat "(" ?result")") )
 (defclass MAIN::assignment-expression
   (is-a expression)
   (slot kind
@@ -148,10 +147,20 @@
 
 
 
-(deffunction *and
-             (?a ?b $?rest)
-             (make-instance of and-expression
-                            (children ?a ?b ?rest)))
+(defgeneric *and)
+(defmethod *and
+  (?a ?b)
+  (make-instance of and-expression
+                 (children ?a ?b)))
+
+(defmethod *and
+  (?a ?b ?c)
+  (*and (*and ?a ?b) ?c))
+
+(defmethod *and
+  (?a ?b ?c ?d $?rest)
+  (*and (*and (*and ?a ?b ?c) ?d) $?rest))
+            
 (deffunction *or
              (?a ?b $?rest)
              (make-instance of or-expression
@@ -337,65 +346,6 @@
          (recompute-parent ?contents)
          (modify-instance ?p
                           (children ?contents)))
-
-(defrule MAIN::merge-or-statements
-         ?nested <- (object (is-a or-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children $?contents))
-         ?p <- (object (is-a or-expression)
-                       (name ?parent)
-                       (children $?a ?nest $?b))
-         =>
-         (unmake-instance ?nested)
-         (recompute-parent ?contents)
-         (modify-instance ?p
-                          (children ?a ?contents ?b)))
-
-
-(defrule MAIN::merge-and-statements
-         ?nested <- (object (is-a and-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children $?contents))
-         ?p <- (object (is-a and-expression)
-                       (name ?parent)
-                       (children $?a ?nest $?b))
-         =>
-         (unmake-instance ?nested)
-         (recompute-parent ?contents)
-         (modify-instance ?p
-                          (children ?a ?contents ?b)))
-
-(defrule MAIN::convert-nand-to-not-if-makes-sense
-         ?nested <- (object (is-a and-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children ?child ?child))
-         ?p <- (object (is-a not-expression)
-                       (name ?parent)
-                       (children ?nest))
-
-         =>
-         (unmake-instance ?nested)
-         (recompute-parent ?child)
-         (modify-instance ?p 
-                          (children ?child)))
-
-(defrule MAIN::convert-nor-to-not-if-makes-sense
-         ?nested <- (object (is-a or-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children ?child ?child))
-         ?p <- (object (is-a not-expression)
-                       (name ?parent)
-                       (children ?nest))
-
-         =>
-         (unmake-instance ?nested)
-         (recompute-parent ?child)
-         (modify-instance ?p 
-                          (children ?child)))
 
 (defrule MAIN::identity-and-merge
          "(identity (and)) => and"
