@@ -190,7 +190,7 @@
                  (right-child ?right)))
 (defmethod *and
   (?a ?b (?rest MULTIFIELD))
-  (*and ?a ?b 
+  (*and (*and ?a ?b)
         (expand$ ?rest)))
 
 (defmethod *and
@@ -210,7 +210,7 @@
        (expand$ ?rest)))
 (defmethod *or
   (?a ?b (?rest MULTIFIELD))
-  (*or ?a ?b 
+  (*or (*or ?a ?b)
        (expand$ ?rest)))
 
 
@@ -341,7 +341,6 @@
          =>
          (retract ?f))
 (defrule MAIN::fulfill-parent-claims
-         (declare (salience 10000))
          ?f <- (parent-claim (parent ?parent)
                              (target ?n))
          ?k <- (object (is-a expression)
@@ -427,7 +426,7 @@
          =>
          (modify-instance ?f2
                           (right-child (duplicate-instance ?child (parent FALSE)))))
-
+;
 ;; 
 
 ;; reductions
