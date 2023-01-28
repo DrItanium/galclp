@@ -81,34 +81,14 @@
 
 (deffunction *xor
              (?a ?b)
-             (defexpression FALSE
-                            xor
-                            ?a
-                            ?b))
-             ;(*or (*and (*not ?a) ?b)
-             ;     (*and ?a (*not ?b))))
+             (*or (*and (*not ?a) ?b)
+                  (*and ?a (*not ?b))))
 (deffunction *neq
              (?a ?b)
              (*xor ?a ?b))
 (deffunction *eq
              (?a ?b)
              (*not (*neq ?a ?b)))
-(defgeneric *nand)
-(defgeneric *nor)
-(defmethod *nand
-             (?a ?b)
-             (defexpression FALSE
-                            nand
-                            ?a
-                            ?b))
-(defmethod *nand (?a) (*nand ?a ?a))
-(defmethod *nor
-  (?a ?b)
-  (defexpression FALSE
-                 nor
-                 ?a
-                 ?b))
-(defmethod *nor (?a) (*nor ?a ?a))
 ;; @todo add support for multiple parents for sub expressions
 (deffunction *mux21
              (?cond ?a ?b)
@@ -128,9 +108,16 @@
 (deffunction recompute-parent
              ($?thing)
              (assert (recompute parents for ?thing)))
+(deftemplate MAIN::parent-claim
+             (slot parent
+                   (type INSTANCE)
+                   (default ?NONE))
+             (slot target
+                   (type INSTANCE)
+                   (default ?NONE)))
 ;; parent recompute operations
 (defrule MAIN::fix-parents
-         (declare (salience 10000))
+         (declare (salience 9990))
          ?child <- (object (is-a expression)
                            (parent FALSE)
                            (name ?n))
@@ -138,10 +125,10 @@
                  (children $? ?n $?)
                  (name ?parent))
          =>
-         (modify-instance ?child 
-                          (parent ?parent)))
+         (assert (parent-claim (parent ?parent)
+                               (target ?n))))
 (defrule MAIN::recompute-parent-success
-         (declare (salience 10000))
+         (declare (salience 9990))
          ?f <- (recompute parents for ?contents $?rest)
          ?x <- (object (is-a expression)
                        (name ?contents))
@@ -152,7 +139,7 @@
                           (parent FALSE)))
 
 (defrule MAIN::recompute-parent-fail
-         (declare (salience 10000))
+         (declare (salience 9990))
          ?f <- (recompute parents for ?contents $?rest)
          (test (not (instancep ?contents)))
          =>
