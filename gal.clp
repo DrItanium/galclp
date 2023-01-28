@@ -40,6 +40,9 @@
              (slot kind
                    (type SYMBOL)
                    (default ?NONE))
+             (slot reversible
+                   (type SYMBOL)
+                   (default TRUE))
              (multislot args
                         (default ?NONE)))
 (deftemplate MAIN::annotation-clone-request
@@ -600,10 +603,12 @@
          "In the cases where args is non empty then we can do a reverse back channel easily"
          ?f <- (annotation (target ?target)
                            (kind ?kind)
+                           (reversible TRUE)
                            (args $?args))
          =>
          (progn$ (?a ?args)
                  (assert (annotation (target ?a)
+                                     (reversible FALSE)
                                      (kind (sym-cat reverse- ?kind))
                                      (args ?target)))))
 
@@ -623,3 +628,11 @@
                              (kind leaf-node)
                              (args))))
 
+(defrule MAIN::fulfill-clone-request
+         ?f <- (annotation (kind ?kind))
+         (annotation-clone-request (target-kind ?kind)
+                                   (new-name ?new-kind))
+         =>
+         (duplicate ?f 
+                    (kind ?new-kind)))
+                           
