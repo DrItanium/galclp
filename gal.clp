@@ -220,48 +220,6 @@
              (make-instance of identity-expression
                             (child ?a)))
 
-(deffunction *xor
-             (?a ?b)
-             (*or (*and (*not ?a) ?b)
-                  (*and ?a (*not ?b))))
-(deffunction *neq
-             (?a ?b)
-             (*xor ?a ?b))
-(deffunction *eq
-             (?a ?b)
-             (*or (*and ?a ?b)
-                  (*and (*not ?a) 
-                        (*not ?b))))
-
-(deffunction *eq8
-             (?a0 ?a1 ?a2 ?a3 ?a4 ?a5 ?a6 ?a7
-                  ?b0 ?b1 ?b2 ?b3 ?b4 ?b5 ?b6 ?b7)
-             (*and (*eq ?a0 ?b0)
-                   (*eq ?a1 ?b1)
-                   (*eq ?a2 ?b2)
-                   (*eq ?a3 ?b3)
-                   (*eq ?a4 ?b4)
-                   (*eq ?a5 ?b5)
-                   (*eq ?a6 ?b6)
-                   (*eq ?a7 ?b7)))
-
-
-;; @todo add support for multiple parents for sub expressions
-(deffunction *mux21
-             (?cond ?a ?b)
-             (*or (*and (*not ?cond) ?a)
-                  (*and ?cond ?b)))
-
-(deffunction *mux42
-             (?c0 ?c1 ?a ?b ?c ?d)
-             (*mux21 ?c1
-                     (*mux21 ?c0 ?a ?b)
-                     (*mux21 ?c0 ?c ?d)))
-(deffunction *mux83
-             (?c0 ?c1 ?c2 ?a ?b ?c ?d ?e ?f ?g ?h)
-             (*mux21 ?c2
-                     (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
-                     (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
 (deftemplate MAIN::parent-claim
              (slot parent
                    (type INSTANCE)
