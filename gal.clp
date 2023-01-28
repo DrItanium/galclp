@@ -145,21 +145,21 @@
         (storage local)
         (visibility public)
         (default ?NONE))
-  (slot pinout
-        (type STRING)
-        (storage local)
-        (visibility public)
-        (default ?NONE))
+  (multislot pinout
+             (type STRING)
+             (storage local)
+             (visibility public)
+             (default ?NONE))
   (multislot expressions
              (type INSTANCE)
              (storage local)
              (visibility public)
              (default ?NONE))
-  (slot description
-        (type STRING)
-        (storage local)
-        (visibility public)
-        (default ?NONE))
+  (multislot description
+             (type STRING)
+             (storage local)
+             (visibility public)
+             (default ?NONE))
   (message-handler to-string primary))
 
 (defmessage-handler pld to-string primary
@@ -167,19 +167,16 @@
                     (printout ?router 
                               ?self:chip crlf
                               ?self:title crlf 
-                              crlf
-                              ?self:pinout
                               crlf)
+                    (progn$ (?l ?self:pinout)
+                            (printout ?router ?l crlf))
                     (progn$ (?x ?self:expressions)
                             (printout ?router 
                                       (send ?x to-string)
                                       crlf))
-                    (printout ?router 
-                              crlf
-                              crlf
-                              DESCRIPTION
-                              ?self:description
-                              crlf))
+                    (printout ?router crlf crlf DESCRIPTION crlf)
+                    (progn$ (?d ?self:description)
+                            (printout ?router ?d crlf)))
 
 
 (defgeneric *and)
