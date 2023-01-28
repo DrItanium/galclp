@@ -22,6 +22,8 @@
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
 
+(defmessage-handler OBJECT to-string primary () (str-cat ?self))
+(defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
 (defclass MAIN::expression
   (is-a USER)
   (slot parent
@@ -38,7 +40,18 @@
         (default ?NONE))
   (multislot children
              (storage local)
-             (visibility public)))
+             (visibility public))
+  (message-handler to-string primary))
+
+(defmessage-handler expression to-string primary
+                    ()
+                    (bind ?result 
+                          "")
+                    (progn$ (?child (dynamic-get children))
+                            (bind ?result
+                                  (str-cat ?result " " (send ?child to-string))))
+                    ?result)
+
 (defclass MAIN::not-expression
   (is-a expression)
   (slot kind
@@ -53,7 +66,7 @@
 (defmessage-handler not-expression to-string primary
                     ()
                     (str-cat " /" 
-                             (send (nth$ 1 ?self:children) 
+                             (send (expand$ (first$ (dynamic-get children)))
                                    to-string)
                              " "))
 
@@ -70,7 +83,7 @@
 
 (defmessage-handler identity-expression to-string primary
                     ()
-                    (str-cat (nth$ 1 ?self:children)))
+                    (str-cat (nth$ 1 (dynamic-get children))))
 
 (defclass MAIN::and-expression
   (is-a expression)
@@ -84,10 +97,11 @@
   (message-handler to-string primary))
 (defmessage-handler and-expression to-string primary
                     ()
-                    (bind ?result "")
-                    (progn$ (?a ?self:children)
+                    (bind ?result (send (expand$ (first$ (dynamic-get children))) to-string))
+                    (progn$ (?a (rest$ (dynamic-get children)))
                             (bind ?result 
-                                  (str-cat ?result " * " 
+                                  (str-cat ?result 
+                                           " * " 
                                            (send ?a to-string)
                                            " ")))
                     ?result)
@@ -102,22 +116,38 @@
              (source composite)
              (default ?NONE))
   (message-handler to-string primary))
-(defmessage-handler and-expression to-string primary
+
+(defmessage-handler or-expression to-string primary
                     ()
-                    (bind ?result "")
-                    (progn$ (?a ?self:children)
+                    (bind ?result (send (expand$ (first$ (dynamic-get children))) to-string))
+                    (progn$ (?a (rest$ (dynamic-get children)))
                             (bind ?result 
-                                  (str-cat ?result " + " 
+                                  (str-cat ?result 
+                                           " + " 
                                            (send ?a to-string)
                                            " ")))
                     ?result)
+(defclass MAIN::assignment-expression
+  (is-a expression)
+  (slot kind
+        (source composite)
+        (default-dynamic assignment))
+  (multislot children
+             (range 2 ?VARIABLE)
+             (source composite)
+             (default ?NONE))
+  (message-handler to-string primary))
+(defmessage-handler assignment-expression to-string primary
+                    ()
+                    (bind ?prefix (str-cat (send (expand$ (first$ ?self:children)) to-string) " = "))
+                    (bind ?rest "")
+                    (progn$ (?a (rest$ ?self:children))
+                            (bind ?rest
+                                  (str-cat ?rest " " (send ?a to-string))))
+                    (str-cat ?prefix ?rest))
 
-(deffunction defexpression
-             (?parent ?kind $?children)
-             (make-instance of expression
-                            (kind ?kind)
-                            (parent ?parent)
-                            (children $?children)))
+
+
 (deffunction *and
              (?a ?b $?rest)
              (make-instance of and-expression
@@ -134,16 +164,12 @@
 
 (deffunction *assign
              (?dest $?expression)
-             (defexpression FALSE
-                            assign
-                            ?dest
-                            $?expression))
+             (make-instance of assignment-expression
+                            (children ?dest $?expression)))
 (deffunction *identity
              (?a)
-             (defexpression FALSE
-                            identity
-                            ?a))
-
+             (make-instance of identity-expression
+                            (children ?a)))
 
 (deffunction *xor
              (?a ?b)
@@ -154,7 +180,8 @@
              (*xor ?a ?b))
 (deffunction *eq
              (?a ?b)
-             (*not (*neq ?a ?b)))
+             (*not (*xor ?a ?b)))
+
 ;; @todo add support for multiple parents for sub expressions
 (deffunction *mux21
              (?cond ?a ?b)
@@ -164,13 +191,13 @@
 (deffunction *mux42
              (?c0 ?c1 ?a ?b ?c ?d)
              (*mux21 ?c1
-                    (*mux21 ?c0 ?a ?b)
-                    (*mux21 ?c0 ?c ?d)))
+                     (*mux21 ?c0 ?a ?b)
+                     (*mux21 ?c0 ?c ?d)))
 (deffunction *mux83
              (?c0 ?c1 ?c2 ?a ?b ?c ?d ?e ?f ?g ?h)
              (*mux21 ?c2
-                    (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
-                    (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
+                     (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
+                     (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
 (deffunction recompute-parent
              ($?thing)
              (assert (recompute parents for ?thing)))
@@ -258,22 +285,19 @@
                        (name ?parent)
                        (children ?nest))
          =>
-         (unmake-instance ?nested )
+         (unmake-instance ?nested ?p)
          (recompute-parent ?contents)
          ; turn not-not into an identity node instead
-         (modify-instance ?p
-                          (kind identity)
-                          (children ?contents)))
+         (make-instance ?parent of identity-expression
+                        (children ?contents)))
 
 (defrule MAIN::eliminate-identity-identity
          "(ident (ident ?)) should be flattened"
-         ?nested <- (object (is-a expression)
-                            (kind identity)
+         ?nested <- (object (is-a identity-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children ?contents))
-         ?p <- (object (is-a expression)
-                       (kind identity)
+         ?p <- (object (is-a identity-expression)
                        (name ?parent)
                        (children ?nest))
          =>
@@ -284,31 +308,28 @@
 
 (defrule MAIN::identity-not-merge
          "(identity (not)) => not"
-         ?nested <- (object (is-a expression)
+         ?nested <- (object (is-a not-expression)
                             (kind not)
                             (parent ?parent)
                             (name ?nest)
                             (children ?contents))
-         ?p <- (object (is-a expression)
+         ?p <- (object (is-a identity-expression)
                        (kind identity)
                        (name ?parent)
                        (children ?nest))
          =>
-         (unmake-instance ?nested)
+         (unmake-instance ?nested ?p)
          (recompute-parent ?contents)
-         (modify-instance ?p
-                          (kind not)
-                          (children ?contents)))
+         (make-instance ?parent of not-expression
+                        (children ?contents)))
 
 (defrule MAIN::not-identity-merge
          "(not (identity)) => not"
-         ?nested <- (object (is-a expression)
-                            (kind identity)
+         ?nested <- (object (is-a identity-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children ?contents))
-         ?p <- (object (is-a expression)
-                       (kind not)
+         ?p <- (object (is-a not-expression)
                        (name ?parent)
                        (children ?nest))
          =>
@@ -318,13 +339,11 @@
                           (children ?contents)))
 
 (defrule MAIN::merge-or-statements
-         ?nested <- (object (is-a expression)
-                            (kind or)
+         ?nested <- (object (is-a or-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children $?contents))
-         ?p <- (object (is-a expression)
-                       (kind or)
+         ?p <- (object (is-a or-expression)
                        (name ?parent)
                        (children $?a ?nest $?b))
          =>
@@ -335,13 +354,11 @@
 
 
 (defrule MAIN::merge-and-statements
-         ?nested <- (object (is-a expression)
-                            (kind and)
+         ?nested <- (object (is-a and-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children $?contents))
-         ?p <- (object (is-a expression)
-                       (kind and)
+         ?p <- (object (is-a and-expression)
                        (name ?parent)
                        (children $?a ?nest $?b))
          =>
@@ -351,13 +368,11 @@
                           (children ?a ?contents ?b)))
 
 (defrule MAIN::convert-nand-to-not-if-makes-sense
-         ?nested <- (object (is-a expression)
-                            (kind and)
+         ?nested <- (object (is-a and-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children ?child ?child))
-         ?p <- (object (is-a expression)
-                       (kind not)
+         ?p <- (object (is-a not-expression)
                        (name ?parent)
                        (children ?nest))
 
@@ -368,13 +383,11 @@
                           (children ?child)))
 
 (defrule MAIN::convert-nor-to-not-if-makes-sense
-         ?nested <- (object (is-a expression)
-                            (kind or)
+         ?nested <- (object (is-a or-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children ?child ?child))
-         ?p <- (object (is-a expression)
-                       (kind not)
+         ?p <- (object (is-a not-expression)
                        (name ?parent)
                        (children ?nest))
 
@@ -386,36 +399,30 @@
 
 (defrule MAIN::identity-and-merge
          "(identity (and)) => and"
-         ?nested <- (object (is-a expression)
-                            (kind and)
+         ?nested <- (object (is-a and-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children $?contents))
-         ?p <- (object (is-a expression)
-                       (kind identity)
+         ?p <- (object (is-a identity-expression)
                        (name ?parent)
                        (children ?nest))
          =>
-         (unmake-instance ?nested)
+         (unmake-instance ?nested ?p)
          (recompute-parent ?contents)
-         (modify-instance ?p
-                          (kind and)
-                          (children $?contents)))
+         (make-instance ?parent of and-expression
+                        (children $?contents)))
 
 (defrule MAIN::identity-or-merge
          "(identity (or)) => or"
-         ?nested <- (object (is-a expression)
-                            (kind or)
+         ?nested <- (object (is-a or-expression)
                             (parent ?parent)
                             (name ?nest)
                             (children $?contents))
-         ?p <- (object (is-a expression)
-                       (kind identity)
+         ?p <- (object (is-a identity-expression)
                        (name ?parent)
                        (children ?nest))
          =>
-         (unmake-instance ?nested)
+         (unmake-instance ?nested ?p)
          (recompute-parent ?contents)
-         (modify-instance ?p
-                          (kind or)
-                          (children $?contents)))
+         (make-instance ?parent of or-expression
+                        (contents ?contents)))
