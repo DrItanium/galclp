@@ -153,7 +153,7 @@
 (defmethod *or
   (?a ?b $?rest)
   (*or (*or ?a ?b)
-        (expand$ ?rest)))
+       (expand$ ?rest)))
 
 
 (deffunction *not
@@ -452,48 +452,6 @@
                                           ?left))
                         (right-child (*and ?other
                                            ?right))))
-
-(defrule MAIN::distribute-or-to-and:left
-         " (or (and Q R) P) => (and (or P Q) (or P R))"
-         ?f <- (object (is-a or-expression)
-                       (left-child ?orexp)
-                       (right-child ?other)
-                       (name ?top))
-         ?k <- (object (is-a and-expression)
-                       (name ?orexp)
-                       (parent ?top)
-                       (left-child ?left)
-                       (right-child ?right))
-
-         =>
-         (recompute-parent ?left
-                           ?right)
-         (unmake-instance ?f ?k)
-         (make-instance ?top of and-expression
-                        (left-child (*or ?other
-                                          ?left))
-                        (right-child (*or ?other
-                                           ?right))))
-
-(defrule MAIN::distribute-or-to-and:right
-         " (or P (and Q R)) => (and (or P Q) (or P R))"
-         ?f <- (object (is-a or-expression)
-                       (left-child ?other)
-                       (right-child ?orexp)
-                       (name ?top))
-         ?k <- (object (is-a and-expression)
-                       (name ?orexp)
-                       (parent ?top)
-                       (left-child ?left)
-                       (right-child ?right))
-
-         =>
-         (recompute-parent ?left
-                           ?right)
-         (unmake-instance ?f ?k)
-         (make-instance ?top of and-expression
-                        (left-child (*or ?other
-                                          ?left))
-                        (right-child (*or ?other
-                                           ?right))))
-
+;; we don't support distributing or to and for two reasons:
+;; 1. The gal chips treat or statements as separate groups of and statements
+;; 2. Implementing both kinds will result in an infinite loop!
