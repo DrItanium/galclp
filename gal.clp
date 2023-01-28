@@ -78,7 +78,7 @@
                                            " " (dynamic-get operator) " "
                                            (send ?c to-string))))
                     ?message)
-                                  
+
 (defclass MAIN::unary-expression
   (is-a expression)
   (multislot children
@@ -250,12 +250,12 @@
 ;; parent recompute operations
 (defrule MAIN::fix-parents
          (declare (salience 10000))
-         ?child <- (object (is-a expression)
-                           (parent FALSE)
-                           (name ?n))
          (object (is-a expression)
                  (name ?parent)
                  (children $? ?n $?))
+         ?child <- (object (is-a expression)
+                           (name ?n)
+                           (parent ~?parent))
          =>
          (assert (parent-claim (parent ?parent)
                                (target ?n))))
@@ -311,7 +311,7 @@
                           (parent ?parent)))
 ;; in case we accidentally created unintentional copies we need to fix them up
 (defrule MAIN::validate-no-duplicate-entries
-         (declare (salience 9999))
+         (declare (salience 10000))
          (object (is-a expression)
                  (name ?name)
                  (children $? ?n&:(instancep ?n) $?))
@@ -321,6 +321,8 @@
          =>
          (modify-instance ?f2
                           (children ?a (duplicate-instance ?n (parent FALSE)) ?b)))
+
+
 
 ;; reductions
 
@@ -413,8 +415,8 @@
                             (name ?node)
                             (children ?nest))
          ?p <- (object (is-a binary-expression)
-                            (name ?parent)
-                            (children $?a ?node $?b))
+                       (name ?parent)
+                       (children $?a ?node $?b))
          =>
          (recompute-parent ?nest)
          (unmake-instance ?nested)
@@ -544,13 +546,11 @@
          (stage (current flatten))
          (can-flatten ?target)
          ?f <- (object (is-a ?target)
-                       (kind ?op)
                        (name ?name)
                        (parent ?p)
                        (children $?children))
          ?f2 <- (object (is-a ?target)
                         (name ?p)
-                        (kind ?op)
                         (children $?a ?name $?b))
          =>
          (unmake-instance ?f)
@@ -558,3 +558,11 @@
          (modify-instance ?f2 
                           (children $?a ?children $?b)))
 
+
+(defrule MAIN::remove-redundant-expressions
+         (stage (current flatten))
+         ?f <- (object (is-a expression)
+                       (children $?a ?b $?c ?b $?d))
+         =>
+         (modify-instance ?f
+                          (children ?a ?b ?c ?d)))
