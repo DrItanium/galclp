@@ -407,3 +407,93 @@
                         (parent ?grand)
                         (left-child ?left)
                         (right-child ?right)))
+
+(defrule MAIN::distribute-and-to-or:left
+         " (and (or Q R) P) => (or (and P Q) (and P R))"
+         ?f <- (object (is-a and-expression)
+                       (left-child ?orexp)
+                       (right-child ?other)
+                       (name ?top))
+         ?k <- (object (is-a or-expression)
+                       (name ?orexp)
+                       (parent ?top)
+                       (left-child ?left)
+                       (right-child ?right))
+
+         =>
+         (recompute-parent ?left
+                           ?right)
+         (unmake-instance ?f ?k)
+         (make-instance ?top of or-expression
+                        (left-child (*and ?other
+                                          ?left))
+                        (right-child (*and ?other
+                                           ?right))))
+
+
+(defrule MAIN::distribute-and-to-or:right
+         " (and P (or Q R)) => (or (and P Q) (and P R))"
+         ?f <- (object (is-a and-expression)
+                       (right-child ?orexp)
+                       (left-child ?other)
+                       (name ?top))
+         ?k <- (object (is-a or-expression)
+                       (name ?orexp)
+                       (parent ?top)
+                       (left-child ?left)
+                       (right-child ?right))
+
+         =>
+         (recompute-parent ?left
+                           ?right)
+         (unmake-instance ?f ?k)
+         (make-instance ?top of or-expression
+                        (left-child (*and ?other
+                                          ?left))
+                        (right-child (*and ?other
+                                           ?right))))
+
+(defrule MAIN::distribute-or-to-and:left
+         " (or (and Q R) P) => (and (or P Q) (or P R))"
+         ?f <- (object (is-a or-expression)
+                       (left-child ?orexp)
+                       (right-child ?other)
+                       (name ?top))
+         ?k <- (object (is-a and-expression)
+                       (name ?orexp)
+                       (parent ?top)
+                       (left-child ?left)
+                       (right-child ?right))
+
+         =>
+         (recompute-parent ?left
+                           ?right)
+         (unmake-instance ?f ?k)
+         (make-instance ?top of and-expression
+                        (left-child (*or ?other
+                                          ?left))
+                        (right-child (*or ?other
+                                           ?right))))
+
+(defrule MAIN::distribute-or-to-and:right
+         " (or P (and Q R)) => (and (or P Q) (or P R))"
+         ?f <- (object (is-a or-expression)
+                       (left-child ?other)
+                       (right-child ?orexp)
+                       (name ?top))
+         ?k <- (object (is-a and-expression)
+                       (name ?orexp)
+                       (parent ?top)
+                       (left-child ?left)
+                       (right-child ?right))
+
+         =>
+         (recompute-parent ?left
+                           ?right)
+         (unmake-instance ?f ?k)
+         (make-instance ?top of and-expression
+                        (left-child (*or ?other
+                                          ?left))
+                        (right-child (*or ?other
+                                           ?right))))
+
