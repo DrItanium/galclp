@@ -152,19 +152,22 @@
   (?a ?b)
   (make-instance of and-expression
                  (children ?a ?b)))
-
 (defmethod *and
-  (?a ?b ?c)
-  (*and (*and ?a ?b) ?c))
+  (?a ?b $?rest)
+  (*and (*and ?a ?b)
+        (expand$ ?rest)))
 
-(defmethod *and
-  (?a ?b ?c ?d $?rest)
-  (*and (*and (*and ?a ?b ?c) ?d) $?rest))
-            
-(deffunction *or
-             (?a ?b $?rest)
-             (make-instance of or-expression
-                            (children ?a ?b ?rest)))
+(defgeneric *or)
+(defmethod *or
+  (?a ?b)
+  (make-instance of or-expression
+                 (children ?a ?b)))
+(defmethod *or
+  (?a ?b $?rest)
+  (*or (*or ?a ?b)
+        (expand$ ?rest)))
+
+
 
 (deffunction *not
              (?a)
