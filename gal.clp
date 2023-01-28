@@ -61,7 +61,7 @@
 
 (defmessage-handler binary-expression to-string primary
                     ()
-                    (str-cat "("
+                    (str-cat
                              (send ?self:left-child 
                                    to-string)
                              " "
@@ -69,7 +69,6 @@
                              " "
                              (send ?self:right-child
                                    to-string)
-                             ")"
                              )
                     )
 (defclass MAIN::unary-expression
