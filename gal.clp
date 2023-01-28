@@ -351,82 +351,82 @@
          (modify-instance ?k
                           (parent ?parent)))
 ;; in case we accidentally created unintentional copies we need to fix them up
-(defrule MAIN::validate-no-duplicate-entries-unary-unary
-         (declare (salience 9999))
-         ?f <- (object (is-a unary-expression)
-                       (child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a unary-expression)
-                        (child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (child (duplicate-instance ?child (parent FALSE)))))
-
-(defrule MAIN::validate-no-duplicate-entries-unary-binary-left
-         (declare (salience 9999))
-         ?f <- (object (is-a unary-expression)
-                       (child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a binary-expression)
-                        (left-child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (left-child (duplicate-instance ?child (parent FALSE)))))
-
-(defrule MAIN::validate-no-duplicate-entries-unary-binary-right
-         (declare (salience 9999))
-         ?f <- (object (is-a unary-expression)
-                       (child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a binary-expression)
-                        (right-child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (right-child (duplicate-instance ?child (parent FALSE)))))
-
-(defrule MAIN::validate-no-duplicate-entries-binary-left-binary-left
-         (declare (salience 9999))
-         ?f <- (object (is-a binary-expression)
-                       (left-child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a binary-expression)
-                        (left-child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (left-child (duplicate-instance ?child (parent FALSE)))))
-
-(defrule MAIN::validate-no-duplicate-entries-binary-left-binary-right
-         (declare (salience 9999))
-         ?f <- (object (is-a binary-expression)
-                       (left-child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a binary-expression)
-                        (right-child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (right-child (duplicate-instance ?child (parent FALSE)))))
-
-(defrule MAIN::validate-no-duplicate-entries-binary-right-binary-left
-         (declare (salience 9999))
-         ?f <- (object (is-a binary-expression)
-                       (right-child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a binary-expression)
-                        (left-child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (left-child (duplicate-instance ?child (parent FALSE)))))
-
-(defrule MAIN::validate-no-duplicate-entries-binary-right-binary-right
-         (declare (salience 9999))
-         ?f <- (object (is-a binary-expression)
-                       (right-child ?child&:(instancep ?child)))
-         ?f2 <- (object (is-a binary-expression)
-                        (right-child ?child))
-         (test (neq ?f ?f2))
-         =>
-         (modify-instance ?f2
-                          (right-child (duplicate-instance ?child (parent FALSE)))))
+;(defrule MAIN::validate-no-duplicate-entries-unary-unary
+;         (declare (salience 9999))
+;         ?f <- (object (is-a unary-expression)
+;                       (child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a unary-expression)
+;                        (child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (child (duplicate-instance ?child (parent FALSE)))))
+;
+;(defrule MAIN::validate-no-duplicate-entries-unary-binary-left
+;         (declare (salience 9999))
+;         ?f <- (object (is-a unary-expression)
+;                       (child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a binary-expression)
+;                        (left-child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (left-child (duplicate-instance ?child (parent FALSE)))))
+;
+;(defrule MAIN::validate-no-duplicate-entries-unary-binary-right
+;         (declare (salience 9999))
+;         ?f <- (object (is-a unary-expression)
+;                       (child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a binary-expression)
+;                        (right-child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (right-child (duplicate-instance ?child (parent FALSE)))))
+;
+;(defrule MAIN::validate-no-duplicate-entries-binary-left-binary-left
+;         (declare (salience 9999))
+;         ?f <- (object (is-a binary-expression)
+;                       (left-child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a binary-expression)
+;                        (left-child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (left-child (duplicate-instance ?child (parent FALSE)))))
+;
+;(defrule MAIN::validate-no-duplicate-entries-binary-left-binary-right
+;         (declare (salience 9999))
+;         ?f <- (object (is-a binary-expression)
+;                       (left-child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a binary-expression)
+;                        (right-child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (right-child (duplicate-instance ?child (parent FALSE)))))
+;
+;(defrule MAIN::validate-no-duplicate-entries-binary-right-binary-left
+;         (declare (salience 9999))
+;         ?f <- (object (is-a binary-expression)
+;                       (right-child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a binary-expression)
+;                        (left-child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (left-child (duplicate-instance ?child (parent FALSE)))))
+;
+;(defrule MAIN::validate-no-duplicate-entries-binary-right-binary-right
+;         (declare (salience 9999))
+;         ?f <- (object (is-a binary-expression)
+;                       (right-child ?child&:(instancep ?child)))
+;         ?f2 <- (object (is-a binary-expression)
+;                        (right-child ?child))
+;         (test (neq ?f ?f2))
+;         =>
+;         (modify-instance ?f2
+;                          (right-child (duplicate-instance ?child (parent FALSE)))))
 
 ;; 
 
@@ -596,116 +596,116 @@
 ;; 2. Implementing both kinds will result in an infinite loop!
 
 
-(defrule MAIN::demorgan-nor
-         " (not (or A B)) => (and (not A) (not B))"
-         ?f <- (object (is-a or-expression)
-                       (parent ?parent)
-                       (name ?orexp)
-                       (left-child ?left)
-                       (right-child ?right))
-         ?k <- (object (is-a not-expression)
-                       (name ?parent)
-                       (child ?orexp))
-         =>
-         (unmake-instance ?f ?k)
-         (recompute-parent ?left
-                           ?right)
-         (make-instance ?parent of and-expression
-                        (left-child (*not ?left))
-                        (right-child (*not ?right))))
+;(defrule MAIN::demorgan-nor
+;         " (not (or A B)) => (and (not A) (not B))"
+;         ?f <- (object (is-a or-expression)
+;                       (parent ?parent)
+;                       (name ?orexp)
+;                       (left-child ?left)
+;                       (right-child ?right))
+;         ?k <- (object (is-a not-expression)
+;                       (name ?parent)
+;                       (child ?orexp))
+;         =>
+;         (unmake-instance ?f ?k)
+;         (recompute-parent ?left
+;                           ?right)
+;         (make-instance ?parent of and-expression
+;                        (left-child (*not ?left))
+;                        (right-child (*not ?right))))
 
-(defrule MAIN::demorgan-nand
-         " (not (and A B)) => (or (not A) (not B))"
-         ?f <- (object (is-a and-expression)
-                       (parent ?parent)
-                       (name ?orexp)
-                       (left-child ?left)
-                       (right-child ?right))
-         ?k <- (object (is-a not-expression)
-                       (name ?parent)
-                       (child ?orexp))
-         =>
-         (unmake-instance ?f ?k)
-         (recompute-parent ?left
-                           ?right)
-         (make-instance ?parent of or-expression
-                        (left-child (*not ?left))
-                        (right-child (*not ?right))))
-(defrule MAIN::reduce-redundant-and-expressions
-         ?f <- (object (is-a and-expression)
-                       (name ?name)
-                       (left-child ?a)
-                       (right-child ?a))
-         =>
-         (unmake-instance ?f)
-         (recompute-parent ?a)
-         (make-instance ?name of identity-expression
-                        (child ?a)))
-
-
-(defrule MAIN::reduce-redundant-or-expressions
-         ?f <- (object (is-a or-expression)
-                       (name ?name)
-                       (left-child ?a)
-                       (right-child ?a))
-         =>
-         (unmake-instance ?f)
-         (recompute-parent ?a)
-         (make-instance ?name of identity-expression
-                        (child ?a)))
-
-(defrule MAIN::eliminate-redundant-nested-and-expressions:left-same-as-right-left
-         ?f <- (object (is-a and-expression)
-                       (left-child ?left)
-                       (right-child ?nest))
-         ?f2 <- (object (is-a and-expression)
-                        (name ?nest)
-                        (left-child ?left)
-                        (right-child ?right))
-         =>
-         (recompute-parent ?right)
-         (unmake-instance ?f2)
-         (modify-instance ?f 
-                          (right-child ?right)))
-
-(defrule MAIN::eliminate-redundant-nested-and-expressions:left-same-as-right-right
-         ?f <- (object (is-a and-expression)
-                       (left-child ?left)
-                       (right-child ?nest))
-         ?f2 <- (object (is-a and-expression)
-                        (name ?nest)
-                        (left-child ?l2)
-                        (right-child ?left))
-         =>
-         (recompute-parent ?l2)
-         (unmake-instance ?f2)
-         (modify-instance ?f 
-                          (right-child ?l2)))
-
-(defrule MAIN::eliminate-redundant-nested-and-expressions:right-same-as-left-right
-         ?f <- (object (is-a and-expression)
-                       (right-child ?right)
-                       (left-child ?nest))
-         ?f2 <- (object (is-a and-expression)
-                        (name ?nest)
-                        (left-child ?left)
-                        (right-child ?right))
-         =>
-         (recompute-parent ?left)
-         (unmake-instance ?f2)
-         (modify-instance ?f 
-                          (left-child ?left)))
-
-(defrule MAIN::eliminate-redundant-nested-and-expressions:right-same-as-left-left
-         ?f <- (object (is-a and-expression)
-                       (right-child ?right)
-                       (left-child ?nest))
-         ?f2 <- (object (is-a and-expression)
-                        (name ?nest)
-                        (left-child ?right)
-                        (right-child ?r2))
-         =>
-         (recompute-parent ?r2)
-         (unmake-instance ?f2)
-         (modify-instance ?f 
-                          (left-child ?r2)))
+;(defrule MAIN::demorgan-nand
+;         " (not (and A B)) => (or (not A) (not B))"
+;         ?f <- (object (is-a and-expression)
+;                       (parent ?parent)
+;                       (name ?orexp)
+;                       (left-child ?left)
+;                       (right-child ?right))
+;         ?k <- (object (is-a not-expression)
+;                       (name ?parent)
+;                       (child ?orexp))
+;         =>
+;         (unmake-instance ?f ?k)
+;         (recompute-parent ?left
+;                           ?right)
+;         (make-instance ?parent of or-expression
+;                        (left-child (*not ?left))
+;                        (right-child (*not ?right))))
+; (defrule MAIN::reduce-redundant-and-expressions
+;          ?f <- (object (is-a and-expression)
+;                        (name ?name)
+;                        (left-child ?a)
+;                        (right-child ?a))
+;          =>
+;          (unmake-instance ?f)
+;          (recompute-parent ?a)
+;          (make-instance ?name of identity-expression
+;                         (child ?a)))
+; 
+; 
+; (defrule MAIN::reduce-redundant-or-expressions
+;          ?f <- (object (is-a or-expression)
+;                        (name ?name)
+;                        (left-child ?a)
+;                        (right-child ?a))
+;          =>
+;          (unmake-instance ?f)
+;          (recompute-parent ?a)
+;          (make-instance ?name of identity-expression
+;                         (child ?a)))
+; 
+; (defrule MAIN::eliminate-redundant-nested-and-expressions:left-same-as-right-left
+;          ?f <- (object (is-a and-expression)
+;                        (left-child ?left)
+;                        (right-child ?nest))
+;          ?f2 <- (object (is-a and-expression)
+;                         (name ?nest)
+;                         (left-child ?left)
+;                         (right-child ?right))
+;          =>
+;          (recompute-parent ?right)
+;          (unmake-instance ?f2)
+;          (modify-instance ?f 
+;                           (right-child ?right)))
+; 
+; (defrule MAIN::eliminate-redundant-nested-and-expressions:left-same-as-right-right
+;          ?f <- (object (is-a and-expression)
+;                        (left-child ?left)
+;                        (right-child ?nest))
+;          ?f2 <- (object (is-a and-expression)
+;                         (name ?nest)
+;                         (left-child ?l2)
+;                         (right-child ?left))
+;          =>
+;          (recompute-parent ?l2)
+;          (unmake-instance ?f2)
+;          (modify-instance ?f 
+;                           (right-child ?l2)))
+; 
+; (defrule MAIN::eliminate-redundant-nested-and-expressions:right-same-as-left-right
+;          ?f <- (object (is-a and-expression)
+;                        (right-child ?right)
+;                        (left-child ?nest))
+;          ?f2 <- (object (is-a and-expression)
+;                         (name ?nest)
+;                         (left-child ?left)
+;                         (right-child ?right))
+;          =>
+;          (recompute-parent ?left)
+;          (unmake-instance ?f2)
+;          (modify-instance ?f 
+;                           (left-child ?left)))
+; 
+; (defrule MAIN::eliminate-redundant-nested-and-expressions:right-same-as-left-left
+;          ?f <- (object (is-a and-expression)
+;                        (right-child ?right)
+;                        (left-child ?nest))
+;          ?f2 <- (object (is-a and-expression)
+;                         (name ?nest)
+;                         (left-child ?right)
+;                         (right-child ?r2))
+;          =>
+;          (recompute-parent ?r2)
+;          (unmake-instance ?f2)
+;          (modify-instance ?f 
+;                           (left-child ?r2)))
