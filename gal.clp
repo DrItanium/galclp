@@ -37,115 +37,100 @@
         (type LEXEME)
         (storage local)
         (visibility public)
-        (default ?NONE))
-  (multislot children
-             (storage local)
-             (visibility public))
-  (message-handler to-string primary))
-
-(defmessage-handler expression to-string primary
-                    ()
-                    (bind ?result 
-                          "")
-                    (progn$ (?child (dynamic-get children))
-                            (bind ?result
-                                  (str-cat ?result " " (send ?child to-string))))
-                    ?result)
-
-(defclass MAIN::not-expression
+        (default ?NONE)))
+(defclass MAIN::binary-expression
   (is-a expression)
-  (slot kind
-        (source composite)
-        (default-dynamic not))
-  (multislot children
-             (range 1 1)
-             (source composite)
-             (default ?NONE))
+  (slot left-child
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot right-child
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot operator
+        (storage shared)
+        (visibility public)
+        (default NEED_TO_OVERRIDE!))
   (message-handler to-string primary))
 
-(defmessage-handler not-expression to-string primary
+(defmessage-handler binary-expression to-string primary
                     ()
-                    (str-cat "/" 
-                             (send (expand$ (first$ (dynamic-get children)))
+                    (str-cat (send ?self:left-child 
+                                   to-string)
+                             " "
+                             (dynamic-get operator)
+                             " "
+                             (send ?self:right-child
                                    to-string)))
 
-(defclass MAIN::identity-expression
+(defclass MAIN::unary-expression
   (is-a expression)
-  (slot kind
-        (source composite)
-        (default-dynamic identity))
-  (multislot children
-             (range 1 1)
-             (source composite)
-             (default ?NONE))
+  (slot left-child
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot right-child
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot operator
+        (storage shared)
+        (visibility public)
+        (default NEED_TO_OVERRIDE!))
   (message-handler to-string primary))
 
-(defmessage-handler identity-expression to-string primary
+(defmessage-handler unary-expression to-string primary
                     ()
-                    (str-cat (nth$ 1 (dynamic-get children))))
+                    (str-cat (dynamic-get operator) 
+                             (send ?self:left-child 
+                                   to-string)))
+
+(defclass MAIN::not-expression
+  (is-a unary-expression)
+  (slot operator
+        (source composite)
+        (default "/"))
+  (slot kind
+        (source composite)
+        (default-dynamic not)))
+
+
+(defclass MAIN::identity-expression
+  (is-a unary-expression)
+  (slot operator
+        (source composite)
+        (default ""))
+  (slot kind
+        (source composite)
+        (default-dynamic identity)))
 
 (defclass MAIN::and-expression
   (is-a expression)
+  (slot operator
+        (source composite)
+        (default *))
   (slot kind
         (source composite)
-        (default-dynamic and))
-  (multislot children
-             (range 2 ?VARIABLE)
-             (source composite)
-             (default ?NONE))
-  (message-handler to-string primary))
-(defmessage-handler and-expression to-string primary
-                    ()
-                    (bind ?result (send (expand$ (first$ (dynamic-get children))) to-string))
-                    (progn$ (?a (rest$ (dynamic-get children)))
-                            (bind ?result 
-                                  (str-cat ?result 
-                                           " * " 
-                                           (send ?a to-string)
-                                           " ")))
-                    (str-cat "(" ?result")") )
+        (default-dynamic and)))
 
 (defclass MAIN::or-expression
   (is-a expression)
+  (slot operator
+        (source composite)
+        (default +))
   (slot kind
         (source composite)
-        (default-dynamic or))
-  (multislot children
-             (range 2 ?VARIABLE)
-             (source composite)
-             (default ?NONE))
-  (message-handler to-string primary))
+        (default-dynamic or)))
 
-(defmessage-handler or-expression to-string primary
-                    ()
-                    (bind ?result (send (expand$ (first$ (dynamic-get children))) to-string))
-                    (progn$ (?a (rest$ (dynamic-get children)))
-                            (bind ?result 
-                                  (str-cat ?result 
-                                           " + " 
-                                           (send ?a to-string)
-                                           " ")))
-                    (str-cat "(" ?result")") )
 (defclass MAIN::assignment-expression
-  (is-a expression)
+  (is-a binary-expression)
+  (slot operator
+        (source composite)
+        (default =))
   (slot kind
         (source composite)
-        (default-dynamic assignment))
-  (multislot children
-             (range 2 ?VARIABLE)
-             (source composite)
-             (default ?NONE))
-  (message-handler to-string primary))
-(defmessage-handler assignment-expression to-string primary
-                    ()
-                    (bind ?prefix (str-cat (send (expand$ (first$ ?self:children)) to-string) " = "))
-                    (bind ?rest "")
-                    (progn$ (?a (rest$ ?self:children))
-                            (bind ?rest
-                                  (str-cat ?rest " " (send ?a to-string))))
-                    (str-cat ?prefix ?rest))
-
-
+        (default-dynamic assignment)))
 
 (defgeneric *and)
 (defmethod *and
@@ -166,7 +151,6 @@
   (?a ?b $?rest)
   (*or (*or ?a ?b)
         (expand$ ?rest)))
-
 
 
 (deffunction *not
