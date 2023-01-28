@@ -40,18 +40,18 @@
 
 (deffunction *eq2
              (?a0 ?a1
-              ?b0 ?b1)
+                  ?b0 ?b1)
              (*and (*eq ?a0 ?b0)
                    (*eq ?a1 ?b1)))
 (deffunction *eq3
              (?a0 ?a1 ?a2
-              ?b0 ?b1 ?b2)
+                  ?b0 ?b1 ?b2)
              (*and (*eq2 ?a0 ?a1
                          ?b0 ?b1)
                    (*eq ?a2 ?b2)))
 (deffunction *eq4
              (?a0 ?a1 ?a2 ?a3
-              ?b0 ?b1 ?b2 ?b3)
+                  ?b0 ?b1 ?b2 ?b3)
              (*and (*eq3 ?a0 ?a1 ?a2
                          ?b0 ?b1 ?b2)
                    (*eq ?a3 ?b3)))
@@ -65,12 +65,50 @@
 (deffunction *mux2->4
              (?c0 ?c1 ?a ?b ?c ?d)
              (*mux1->2 ?c1
-                     (*mux1->2 ?c0 ?a ?b)
-                     (*mux1->2 ?c0 ?c ?d)))
+                       (*mux1->2 ?c0 ?a ?b)
+                       (*mux1->2 ?c0 ?c ?d)))
 (deffunction *mux3->8
              (?c0 ?c1 ?c2 ?a ?b ?c ?d ?e ?f ?g ?h)
              (*mux1->2 ?c2
-                     (*mux2->4 ?c0 ?c1 ?a ?b ?c ?d)
-                     (*mux2->4 ?c0 ?c1 ?e ?f ?g ?h)))
+                       (*mux2->4 ?c0 ?c1 ?a ?b ?c ?d)
+                       (*mux2->4 ?c0 ?c1 ?e ?f ?g ?h)))
 
+(deffunction *half-adder
+             (?a ?b)
+             (create$ (*xor ?a ?b)
+                      (*and ?a ?b)))
+(deffunction *full-adder
+             (?a ?b ?c)
+             (bind ?ha0 
+                   (*half-adder ?a 
+                                ?b))
+             (bind ?ha1 
+                   (*half-adder ?c 
+                                (nth$ 1 
+                                      ?ha0)))
+             (create$ (nth$ 1 
+                            ?ha1)
+                      (*or (nth$ 2 ?ha1)
+                           (nth$ 2 ?ha0))))
+
+(deffunction *mul2 
+             (?a0 ?a1
+                  ?b0 ?b1)
+             (bind ?p0
+                   (*and ?a0 ?b0))
+             (bind ?ha0
+                   (*half-adder (*and ?a1
+                                      ?b0)
+                                (*and ?a0
+                                      ?b1)))
+             (bind ?ha1
+                   (*half-adder (nth$ 2 
+                                      ?ha0)
+                                (*and ?a1
+                                      ?b1)))
+             ; return a multifield so that we have to operate on it correctly
+             (create$ ?p0
+                      (nth$ 1 ?ha0)
+                      (nth$ 1 ?ha1)
+                      (nth$ 2 ?ha1)))
 
