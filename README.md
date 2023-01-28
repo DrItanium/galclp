@@ -17,6 +17,7 @@ and it will make sure that it is properly expressed that the GAL assembler will
 understand. It's final product is a pld script which can be used with
 galette/GALasm.
 
-An example of how it works can be found in test/test.pld
+An example of how it works can be found in test/SRAMCardDecoder.clp. Next to it, you will
+see the original horrible implementation inside of SRAMCardDecoder.pld
 
 
