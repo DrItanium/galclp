@@ -30,7 +30,7 @@
         (allowed-symbols FALSE)
         (storage local)
         (visibility public)
-        (default ?NONE))
+        (default-dynamic FALSE))
   (slot kind
         (type LEXEME)
         (storage local)
@@ -39,6 +39,16 @@
   (multislot children
              (storage local)
              (visibility public)))
+(defclass MAIN::not-expression
+  (is-a expression)
+  (slot kind
+        (source composite)
+        (default-dynamic not))
+  (multislot children
+             (range 1 1)
+             (source composite)
+             (default ?NONE))
+  (message-handler to-string primary))
 (deffunction defexpression
              (?parent ?kind $?children)
              (make-instance of expression
@@ -62,9 +72,8 @@
 
 (deffunction *not
              (?a)
-             (defexpression FALSE
-                            not
-                            ?a))
+             (make-instance of not-expression
+                            (children ?a)))
 
 (deffunction *assign
              (?dest $?expression)
@@ -117,7 +126,7 @@
                    (default ?NONE)))
 ;; parent recompute operations
 (defrule MAIN::fix-parents
-         (declare (salience 9990))
+         (declare (salience 10000))
          ?child <- (object (is-a expression)
                            (parent FALSE)
                            (name ?n))
@@ -127,8 +136,23 @@
          =>
          (assert (parent-claim (parent ?parent)
                                (target ?n))))
+(defrule MAIN::parent-collision-detected
+         (declare (salience 10000))
+         ?f <- (parent-claim (parent ?parent)
+                             (target ?n))
+         ?f2 <- (parent-claim (parent ?parent2)
+                              (target ?n))
+         (test (neq ?f ?f2))
+         ?k <- (object (is-a expression)
+                       (name ?parent2)
+                       (children $?a ?n $?b))
+         =>
+         (retract ?f2)
+         (modify-instance ?k
+                          (children $?a (duplicate-instance ?n) $?b)))
+
 (defrule MAIN::recompute-parent-success
-         (declare (salience 9990))
+         (declare (salience 10000))
          ?f <- (recompute parents for ?contents $?rest)
          ?x <- (object (is-a expression)
                        (name ?contents))
@@ -139,7 +163,7 @@
                           (parent FALSE)))
 
 (defrule MAIN::recompute-parent-fail
-         (declare (salience 9990))
+         (declare (salience 10000))
          ?f <- (recompute parents for ?contents $?rest)
          (test (not (instancep ?contents)))
          =>
@@ -150,6 +174,17 @@
          ?f <- (recompute parents for)
          =>
          (retract ?f))
+(defrule MAIN::fulfill-parent-claims
+         ?f <- (parent-claim (parent ?parent)
+                             (target ?n))
+         ?k <- (object (is-a expression)
+                       (name ?n))
+         =>
+         (retract ?f)
+         (modify-instance ?k
+                          (parent ?parent)))
+
+
 ;; 
 
 ;; reductions
@@ -327,57 +362,3 @@
          (modify-instance ?p
                           (kind or)
                           (children $?contents)))
-
-(defrule MAIN::convert-nand-to-not
-         ?f <- (object (is-a expression)
-                       (kind nand)
-                       (children ?a ?b $?nodes))
-         (test (eq ?a ?b (expand$ ?nodes)))
-         =>
-         (modify-instance ?f 
-                          (kind not)
-                          (children ?a)))
-
-(defrule MAIN::convert-nand-to-and
-         ?f <- (object (is-a expression)
-                       (kind nand)
-                       (parent ?parent)
-                       (name ?this)
-                       (children $?children))
-         ?k <- (object (is-a expression)
-                       (kind not)
-                       (name ?parent)
-                       (children ?this))
-         =>
-         (unmake-instance ?f)
-         (recompute-parent ?children)
-         (modify-instance ?k 
-                          (kind and)
-                          (children $?children)))
-
-(defrule MAIN::convert-nor-to-not
-         ?f <- (object (is-a expression)
-                       (kind nor)
-                       (children ?a ?b $?nodes))
-         (test (eq ?a ?b (expand$ ?nodes)))
-         =>
-         (modify-instance ?f 
-                          (kind not)
-                          (children ?a)))
-
-(defrule MAIN::convert-nor-to-or
-         ?f <- (object (is-a expression)
-                       (kind nor)
-                       (parent ?parent)
-                       (name ?this)
-                       (children $?children))
-         ?k <- (object (is-a expression)
-                       (kind not)
-                       (name ?parent)
-                       (children ?this))
-         =>
-         (unmake-instance ?f)
-         (recompute-parent ?children)
-         (modify-instance ?k 
-                          (kind or)
-                          (children $?children)))
