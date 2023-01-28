@@ -49,6 +49,69 @@
              (source composite)
              (default ?NONE))
   (message-handler to-string primary))
+
+(defmessage-handler not-expression to-string primary
+                    ()
+                    (str-cat " /" 
+                             (send (nth$ 1 ?self:children) 
+                                   to-string)
+                             " "))
+
+(defclass MAIN::identity-expression
+  (is-a expression)
+  (slot kind
+        (source composite)
+        (default-dynamic identity))
+  (multislot children
+             (range 1 1)
+             (source composite)
+             (default ?NONE))
+  (message-handler to-string primary))
+
+(defmessage-handler identity-expression to-string primary
+                    ()
+                    (str-cat (nth$ 1 ?self:children)))
+
+(defclass MAIN::and-expression
+  (is-a expression)
+  (slot kind
+        (source composite)
+        (default-dynamic and))
+  (multislot children
+             (range 2 ?VARIABLE)
+             (source composite)
+             (default ?NONE))
+  (message-handler to-string primary))
+(defmessage-handler and-expression to-string primary
+                    ()
+                    (bind ?result "")
+                    (progn$ (?a ?self:children)
+                            (bind ?result 
+                                  (str-cat ?result " * " 
+                                           (send ?a to-string)
+                                           " ")))
+                    ?result)
+
+(defclass MAIN::or-expression
+  (is-a expression)
+  (slot kind
+        (source composite)
+        (default-dynamic or))
+  (multislot children
+             (range 2 ?VARIABLE)
+             (source composite)
+             (default ?NONE))
+  (message-handler to-string primary))
+(defmessage-handler and-expression to-string primary
+                    ()
+                    (bind ?result "")
+                    (progn$ (?a ?self:children)
+                            (bind ?result 
+                                  (str-cat ?result " + " 
+                                           (send ?a to-string)
+                                           " ")))
+                    ?result)
+
 (deffunction defexpression
              (?parent ?kind $?children)
              (make-instance of expression
@@ -57,18 +120,12 @@
                             (children $?children)))
 (deffunction *and
              (?a ?b $?rest)
-             (defexpression FALSE 
-                            and 
-                            ?a 
-                            ?b 
-                            $?rest))
+             (make-instance of and-expression
+                            (children ?a ?b ?rest)))
 (deffunction *or
              (?a ?b $?rest)
-             (defexpression FALSE 
-                            or 
-                            ?a 
-                            ?b 
-                            $?rest))
+             (make-instance of or-expression
+                            (children ?a ?b ?rest)))
 
 (deffunction *not
              (?a)
