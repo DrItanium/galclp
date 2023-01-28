@@ -24,6 +24,9 @@
 
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
+(deffunction recompute-parent
+             ($?thing)
+             (assert (recompute parents for ?thing)))
 (defclass MAIN::expression
   (is-a USER)
   (slot parent
@@ -38,6 +41,8 @@
         (storage local)
         (visibility public)
         (default ?NONE)))
+
+
 (defclass MAIN::binary-expression
   (is-a expression)
   (slot left-child
@@ -63,14 +68,9 @@
                              " "
                              (send ?self:right-child
                                    to-string)))
-
 (defclass MAIN::unary-expression
   (is-a expression)
-  (slot left-child
-        (storage local)
-        (visibility public)
-        (default ?NONE))
-  (slot right-child
+  (slot child 
         (storage local)
         (visibility public)
         (default ?NONE))
@@ -83,8 +83,9 @@
 (defmessage-handler unary-expression to-string primary
                     ()
                     (str-cat (dynamic-get operator) 
-                             (send ?self:left-child 
+                             (send ?self:child
                                    to-string)))
+
 
 (defclass MAIN::not-expression
   (is-a unary-expression)
@@ -106,7 +107,7 @@
         (default-dynamic identity)))
 
 (defclass MAIN::and-expression
-  (is-a expression)
+  (is-a binary-expression)
   (slot operator
         (source composite)
         (default *))
@@ -115,7 +116,7 @@
         (default-dynamic and)))
 
 (defclass MAIN::or-expression
-  (is-a expression)
+  (is-a binary-expression)
   (slot operator
         (source composite)
         (default +))
@@ -134,9 +135,10 @@
 
 (defgeneric *and)
 (defmethod *and
-  (?a ?b)
+  (?left ?right)
   (make-instance of and-expression
-                 (children ?a ?b)))
+                 (left-child ?left)
+                 (right-child ?right)))
 (defmethod *and
   (?a ?b $?rest)
   (*and (*and ?a ?b)
@@ -146,7 +148,8 @@
 (defmethod *or
   (?a ?b)
   (make-instance of or-expression
-                 (children ?a ?b)))
+                 (left-child ?a)
+                 (right-child ?b)))
 (defmethod *or
   (?a ?b $?rest)
   (*or (*or ?a ?b)
@@ -156,16 +159,17 @@
 (deffunction *not
              (?a)
              (make-instance of not-expression
-                            (children ?a)))
+                            (child ?a)))
 
 (deffunction *assign
-             (?dest $?expression)
+             (?dest ?expression)
              (make-instance of assignment-expression
-                            (children ?dest $?expression)))
+                            (left-child ?dest)
+                            (right-child ?expression)))
 (deffunction *identity
              (?a)
              (make-instance of identity-expression
-                            (children ?a)))
+                            (child ?a)))
 
 (deffunction *xor
              (?a ?b)
@@ -194,9 +198,6 @@
              (*mux21 ?c2
                      (*mux42 ?c0 ?c1 ?a ?b ?c ?d)
                      (*mux42 ?c0 ?c1 ?e ?f ?g ?h)))
-(deffunction recompute-parent
-             ($?thing)
-             (assert (recompute parents for ?thing)))
 (deftemplate MAIN::parent-claim
              (slot parent
                    (type INSTANCE)
@@ -205,31 +206,85 @@
                    (type INSTANCE)
                    (default ?NONE)))
 ;; parent recompute operations
-(defrule MAIN::fix-parents
+(defrule MAIN::fix-parents:unary
          (declare (salience 10000))
          ?child <- (object (is-a expression)
                            (parent FALSE)
                            (name ?n))
-         (object (is-a expression)
-                 (children $? ?n $?)
+         (object (is-a unary-expression)
+                 (child ?n)
                  (name ?parent))
          =>
          (assert (parent-claim (parent ?parent)
                                (target ?n))))
-(defrule MAIN::parent-collision-detected
+(defrule MAIN::fix-parents:binary:left
+         (declare (salience 10000))
+         ?child <- (object (is-a expression)
+                           (parent FALSE)
+                           (name ?n))
+         (object (is-a binary-expression)
+                 (left-child ?n)
+                 (name ?parent))
+         =>
+         (assert (parent-claim (parent ?parent)
+                               (target ?n))))
+
+(defrule MAIN::fix-parents:binary:right
+         (declare (salience 10000))
+         ?child <- (object (is-a expression)
+                           (parent FALSE)
+                           (name ?n))
+         (object (is-a binary-expression)
+                 (right-child ?n)
+                 (name ?parent))
+         =>
+         (assert (parent-claim (parent ?parent)
+                               (target ?n))))
+
+(defrule MAIN::parent-collision-detected:binary:left
          (declare (salience 10000))
          ?f <- (parent-claim (parent ?parent)
                              (target ?n))
          ?f2 <- (parent-claim (parent ?parent2)
                               (target ?n))
          (test (neq ?f ?f2))
-         ?k <- (object (is-a expression)
+         ?k <- (object (is-a binary-expression)
                        (name ?parent2)
-                       (children $?a ?n $?b))
+                       (left-child ?n))
          =>
          (retract ?f2)
          (modify-instance ?k
-                          (children $?a (duplicate-instance ?n) $?b)))
+                          (left-child (duplicate-instance ?n))))
+
+(defrule MAIN::parent-collision-detected:binary:right
+         (declare (salience 10000))
+         ?f <- (parent-claim (parent ?parent)
+                             (target ?n))
+         ?f2 <- (parent-claim (parent ?parent2)
+                              (target ?n))
+         (test (neq ?f ?f2))
+         ?k <- (object (is-a binary-expression)
+                       (name ?parent2)
+                       (right-child ?n))
+         =>
+         (retract ?f2)
+         (modify-instance ?k
+                          (right-child (duplicate-instance ?n))))
+
+(defrule MAIN::parent-collision-detected:unary
+         (declare (salience 10000))
+         ?f <- (parent-claim (parent ?parent)
+                             (target ?n))
+         ?f2 <- (parent-claim (parent ?parent2)
+                              (target ?n))
+         (test (neq ?f ?f2))
+         ?k <- (object (is-a unary-expression)
+                       (name ?parent2)
+                       (child ?n))
+         =>
+         (retract ?f2)
+         (modify-instance ?k
+                          (child (duplicate-instance ?n))))
 
 (defrule MAIN::recompute-parent-success
          (declare (salience 10000))
@@ -271,36 +326,35 @@
 
 (defrule MAIN::eliminate-not-not
          "(not (not ?)) should be factored out to an identity node"
-         ?nested <- (object (is-a expression)
-                            (kind not)
+         ?nested <- (object (is-a not-expression)
                             (parent ?parent)
                             (name ?nest)
-                            (children ?contents))
-         ?p <- (object (is-a expression)
+                            (child ?node))
+         ?p <- (object (is-a not-expression)
                        (kind not)
                        (name ?parent)
-                       (children ?nest))
+                       (child ?nest))
          =>
          (unmake-instance ?nested ?p)
-         (recompute-parent ?contents)
+         (recompute-parent ?node)
          ; turn not-not into an identity node instead
          (make-instance ?parent of identity-expression
-                        (children ?contents)))
+                        (child ?node)))
 
 (defrule MAIN::eliminate-identity-identity
          "(ident (ident ?)) should be flattened"
          ?nested <- (object (is-a identity-expression)
                             (parent ?parent)
                             (name ?nest)
-                            (children ?contents))
+                            (child ?contents))
          ?p <- (object (is-a identity-expression)
                        (name ?parent)
-                       (children ?nest))
+                       (child ?nest))
          =>
          (unmake-instance ?nested)
          (recompute-parent ?contents)
          (modify-instance ?p 
-                          (children ?contents)))
+                          (child ?contents)))
 
 (defrule MAIN::identity-not-merge
          "(identity (not)) => not"
@@ -308,58 +362,48 @@
                             (kind not)
                             (parent ?parent)
                             (name ?nest)
-                            (children ?contents))
+                            (child ?contents))
          ?p <- (object (is-a identity-expression)
                        (kind identity)
                        (name ?parent)
-                       (children ?nest))
+                       (child ?nest))
          =>
          (unmake-instance ?nested ?p)
          (recompute-parent ?contents)
          (make-instance ?parent of not-expression
-                        (children ?contents)))
+                        (child ?contents)))
 
 (defrule MAIN::not-identity-merge
          "(not (identity)) => not"
          ?nested <- (object (is-a identity-expression)
                             (parent ?parent)
                             (name ?nest)
-                            (children ?contents))
+                            (child ?contents))
          ?p <- (object (is-a not-expression)
                        (name ?parent)
-                       (children ?nest))
+                       (child ?nest))
          =>
          (unmake-instance ?nested)
          (recompute-parent ?contents)
          (modify-instance ?p
-                          (children ?contents)))
+                          (child ?contents)))
 
-(defrule MAIN::identity-and-merge
-         "(identity (and)) => and"
-         ?nested <- (object (is-a and-expression)
+(defrule MAIN::identity-binary-merge
+         "(identity (binary-expr)) => or"
+         ?nested <- (object (is-a binary-expression)
                             (parent ?parent)
                             (name ?nest)
-                            (children $?contents))
+                            (left-child ?left)
+                            (right-child ?right))
          ?p <- (object (is-a identity-expression)
                        (name ?parent)
-                       (children ?nest))
+                       (parent ?grand)
+                       (child ?nest))
          =>
+         (bind ?kind
+               (class ?nested))
          (unmake-instance ?nested ?p)
-         (recompute-parent ?contents)
-         (make-instance ?parent of and-expression
-                        (children $?contents)))
-
-(defrule MAIN::identity-or-merge
-         "(identity (or)) => or"
-         ?nested <- (object (is-a or-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children $?contents))
-         ?p <- (object (is-a identity-expression)
-                       (name ?parent)
-                       (children ?nest))
-         =>
-         (unmake-instance ?nested ?p)
-         (recompute-parent ?contents)
-         (make-instance ?parent of or-expression
-                        (contents ?contents)))
+         (make-instance ?parent of ?kind
+                        (parent ?grand)
+                        (left-child ?left)
+                        (right-child ?right)))
