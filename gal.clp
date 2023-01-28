@@ -31,6 +31,7 @@
           (stage (current optimization-stage1)
                  (rest flatten
                        discovery
+                       correlate
                        display)))
 (deftemplate MAIN::annotation
              "A template fact you attach to instances indirectly to describe more information about them"
@@ -484,10 +485,13 @@
                         (children ?statements)))
 
 ;; @todo reimplement redundant expression detection after I implement flattening
-
-(defrule MAIN::convert-identity-and/or-to-identity
+(deffacts MAIN::allowed-identity-conversions
+          (convert-to-identity and-expression)
+          (convert-to-identity or-expression))
+(defrule MAIN::perform-convert-to-identity
          (stage (current optimization-stage1))
-         ?f <- (object (is-a and-expression|or-expression)
+         (convert-to-identity ?expr)
+         ?f <- (object (is-a ?expr)
                        (name ?name)
                        (children ?a ?a))
          =>
@@ -529,6 +533,16 @@
          (modify-instance ?f2 
                           (children $?a ?children $?b)))
 
+(defrule MAIN::fixup-any-accidental-single-binary
+         (stage (current flatten))
+         (convert-to-identity ?expr)
+         ?f <- (object (is-a ?expr)
+                       (name ?name)
+                       (children ?a))
+         =>
+         (unmake-instance ?name)
+         (make-instance ?name of identity-expression
+                        (children ?a)))
 
 (defrule MAIN::remove-redundant-expressions
          (stage (current flatten))
@@ -563,3 +577,7 @@
                              (kind expression-node)
                              (args ?child))))
 
+(defrule MAIN::identify-leaf-nodes
+         (stage (current correlate))
+         (object (is-a expression)
+                 (
