@@ -160,7 +160,7 @@
         (storage local)
         (visibility public)
         (default ?NONE))
-  (message-handler to-string primary)
+  (message-handler to-string primary))
 
 (defmessage-handler pld to-string primary
                     (?router)
@@ -234,7 +234,7 @@
 
 (deffunction *eq8
              (?a0 ?a1 ?a2 ?a3 ?a4 ?a5 ?a6 ?a7
-              ?b0 ?b1 ?b2 ?b3 ?b4 ?b5 ?b6 ?b7)
+                  ?b0 ?b1 ?b2 ?b3 ?b4 ?b5 ?b6 ?b7)
              (*and (*eq ?a0 ?b0)
                    (*eq ?a1 ?b1)
                    (*eq ?a2 ?b2)
