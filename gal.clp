@@ -36,13 +36,20 @@
 (deftemplate MAIN::annotation
              "A template fact you attach to instances indirectly to describe more information about them"
              (slot target
-                   (type INSTANCE)
                    (default ?NONE))
              (slot kind
-                   (type LEXEME)
+                   (type SYMBOL)
                    (default ?NONE))
              (multislot args
                         (default ?NONE)))
+(deftemplate MAIN::annotation-clone-request
+             "When generating reverse kind annotations, we can hook into doing name replacements"
+             (slot target-kind
+                   (type SYMBOL)
+                   (default ?NONE))
+             (slot new-name
+                   (type SYMBOL)
+                   (default ?NONE)))
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
 (defclass MAIN::expression
@@ -576,6 +583,33 @@
          (assert (annotation (target ?name)
                              (kind expression-node)
                              (args ?child))))
+
+(defrule MAIN::annotate-non-expression-nodes
+         (stage (current discovery))
+         (object (is-a expression)
+                 (children $? ?child $?)
+                 (name ?name))
+         (not (object (is-a expression)
+                      (name ?child)))
+         =>
+         (assert (annotation (target ?name)
+                             (kind non-expression-node)
+                             (args ?child))))
+
+(defrule MAIN::define-reverse-annotation
+         "In the cases where args is non empty then we can do a reverse back channel easily"
+         ?f <- (annotation (target ?target)
+                           (kind ?kind)
+                           (args $?args))
+         =>
+         (progn$ (?a ?args)
+                 (assert (annotation (target ?a)
+                                     (kind (sym-cat reverse- ?kind))
+                                     (args ?target)))))
+
+(deffacts MAIN::clone-requests
+          (annotation-clone-request (target-kind reverse-non-expression-node)
+                                    (new-name input-to)))
 
 (defrule MAIN::identify-leaf-nodes
          (declare (salience -1))
