@@ -38,6 +38,18 @@
              (?a ?b)
              (*xnor ?a ?b))
 
+(deffunction *true
+             (?a)
+             (*eq ?a ?a))
+(deffunction *false
+             (?a)
+             (*neq ?a ?a))
+(deffunction *nand
+             (?a ?b $?rest)
+             (*not (*and ?a ?b ?rest)))
+(deffunction *nor
+             (?a ?b $?rest)
+             (*not (*or ?a ?b ?rest)))
 (deffunction *eq2
              (?a0 ?a1
                   ?b0 ?b1)
@@ -55,7 +67,6 @@
              (*and (*eq3 ?a0 ?a1 ?a2
                          ?b0 ?b1 ?b2)
                    (*eq ?a3 ?b3)))
-
 ;; @todo add support for multiple parents for sub expressions
 (deffunction *mux1->2
              (?cond ?a ?b)
@@ -111,4 +122,27 @@
                       (nth$ 1 ?ha0)
                       (nth$ 1 ?ha1)
                       (nth$ 2 ?ha1)))
+
+(deffunction *add2-ripple
+             (?a0 ?a1 
+              ?b0 ?b1
+              ?c-in)
+             (bind ?fa0 
+                   (*full-adder ?a0 
+                                ?b0 
+                                ?c-in))
+             (bind ?sum0 
+                   (nth$ 1 
+                         ?fa0))
+             (bind ?fa1
+                   (*full-adder ?a1
+                                ?b1
+                                (nth$ 2 
+                                      ?fa0)))
+             (create$ ?sum0
+                      (nth$ 1 ?fa1)
+                      (*xor (nth$ 2
+                                  ?fa0)
+                            (nth$ 2
+                                  ?fa1))))
 

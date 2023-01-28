@@ -476,5 +476,38 @@
 ;; 2. Implementing both kinds will result in an infinite loop!
 
 
-;; @todo add support for demorgan operations to allow us to not an entire block of ands or ors
+(defrule MAIN::demorgan-nor
+         " (not (or A B)) => (and (not A) (not B))"
+         ?f <- (object (is-a or-expression)
+                       (parent ?parent)
+                       (name ?orexp)
+                       (left-child ?left)
+                       (right-child ?right))
+         ?k <- (object (is-a not-expression)
+                       (name ?parent)
+                       (child ?orexp))
+         =>
+         (unmake-instance ?f ?k)
+         (recompute-parent ?left
+                           ?right)
+         (make-instance ?parent of and-expression
+                        (left-child (*not ?left))
+                        (right-child (*not ?right))))
 
+(defrule MAIN::demorgan-nand
+         " (not (and A B)) => (or (not A) (not B))"
+         ?f <- (object (is-a and-expression)
+                       (parent ?parent)
+                       (name ?orexp)
+                       (left-child ?left)
+                       (right-child ?right))
+         ?k <- (object (is-a not-expression)
+                       (name ?parent)
+                       (child ?orexp))
+         =>
+         (unmake-instance ?f ?k)
+         (recompute-parent ?left
+                           ?right)
+         (make-instance ?parent of or-expression
+                        (left-child (*not ?left))
+                        (right-child (*not ?right))))
