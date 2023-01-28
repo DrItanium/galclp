@@ -21,7 +21,17 @@
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
-
+(deftemplate stage
+             (slot current
+                   (type SYMBOL)
+                   (default ?NONE))
+             (multislot rest
+                        (type SYMBOL)))
+(deffacts MAIN::stages
+          (stage (current optimization-stage1)
+                 (rest flatten
+                       optimization-stage2
+                       display)))
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
 (deffunction recompute-parent
@@ -50,7 +60,6 @@
   (is-a expression)
   (multislot children
              (source composite)
-             (range 2 2)
              (default ?NONE))
   (slot operator
         (storage shared)
@@ -85,7 +94,9 @@
 (defmessage-handler unary-expression to-string primary
                     ()
                     (str-cat (dynamic-get operator) 
-                             (nth$ 1 (dynamic-get children))))
+                             (send (nth$ 1 
+                                         (dynamic-get children))
+                                   to-string)))
 
 
 (defclass MAIN::not-expression
@@ -187,7 +198,7 @@
                  (children ?left ?right)))
 (defmethod *and
   (?a ?b (?rest MULTIFIELD))
-  (*and (*and ?a ?b)
+  (*and ?a ?b
         (expand$ ?rest)))
 
 (defmethod *and
@@ -206,7 +217,7 @@
        (expand$ ?rest)))
 (defmethod *or
   (?a ?b (?rest MULTIFIELD))
-  (*or (*or ?a ?b)
+  (*or ?a ?b
        (expand$ ?rest)))
 
 
@@ -233,7 +244,7 @@
                    (type INSTANCE)
                    (default ?NONE)))
 ;; parent recompute operations
-(defrule MAIN::fix-parents:unary
+(defrule MAIN::fix-parents
          (declare (salience 10000))
          ?child <- (object (is-a expression)
                            (parent FALSE)
@@ -407,6 +418,7 @@
                           (children ?a ?nest ?b)))
 (defrule MAIN::distribute-and-to-or:left
          " (and (or Q R) P) => (or (and P Q) (and P R))"
+         (stage (current optimization-stage1))
          ?f <- (object (is-a and-expression)
                        (children ?orexp ?other)
                        (name ?top))
@@ -428,6 +440,7 @@
 
 (defrule MAIN::distribute-and-to-or:right
          " (and P (or Q R)) => (or (and P Q) (and P R))"
+         (stage (current optimization-stage1))
          ?f <- (object (is-a and-expression)
                        (children ?other ?orexp)
                        (name ?top))
@@ -492,3 +505,29 @@
                         (children ?statements)))
 
 ;; @todo reimplement redundant expression detection after I implement flattening
+
+(defrule MAIN::convert-identity-and/or-to-identity
+         (stage (current optimization-stage1))
+         ?f <- (object (is-a and-expression|or-expression)
+                       (name ?name)
+                       (children ?a ?a))
+         =>
+         (recompute-parent ?a)
+         (unmake-instance ?name)
+         (make-instance ?name of identity-expression
+                        (children ?a)))
+
+(defrule MAIN::next-stage
+         (declare (salience -10000))
+         ?f <- (stage (rest ?next $?rest))
+         =>
+         (modify ?f 
+                 (current ?next)
+                 (rest ?rest)))
+
+(defrule MAIN::display-top-levels-to-console
+         (stage (current display))
+         ?f <- (object (is-a expression)
+                       (parent FALSE))
+         =>
+         (printout stdout (send ?f to-string) crlf))
