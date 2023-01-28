@@ -295,13 +295,13 @@
          (declare (salience 9999))
          (object (is-a expression)
                  (name ?name)
-                 (children $? ?n $?))
+                 (children $? ?n&:(instancep ?n) $?))
          ?f2 <- (object (is-a expression)
                         (name ~?name)
                         (children $?a ?n $?b))
          =>
          (modify-instance ?f2
-                          (children ?a (duplicate-instance ?child (parent FALSE)) ?b)))
+                          (children ?a (duplicate-instance ?n (parent FALSE)) ?b)))
 
 ;; reductions
 
