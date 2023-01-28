@@ -61,11 +61,15 @@
 (defmessage-handler binary-expression to-string primary
                     ()
                     (str-cat
-                             (nth$ 1 (dynamic-get children))
+                             (send (nth$ 1 
+                                         (dynamic-get children))
+                                   to-string)
                              " "
                              (dynamic-get operator)
                              " "
-                             (nth$ 2 (dynamic-get children))))
+                             (send (nth$ 2 
+                                         (dynamic-get children))
+                                   to-string)))
 (defclass MAIN::unary-expression
   (is-a expression)
   (multislot children
