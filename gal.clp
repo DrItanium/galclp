@@ -133,6 +133,54 @@
         (source composite)
         (default-dynamic assignment)))
 
+(defclass MAIN::pld
+  (is-a USER)
+  (slot chip
+        (type SYMBOL)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot title 
+        (type SYMBOL)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (slot pinout
+        (type STRING)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (multislot expressions
+             (type INSTANCE)
+             (storage local)
+             (visibility public)
+             (default ?NONE))
+  (slot description
+        (type STRING)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (message-handler to-string primary)
+
+(defmessage-handler pld to-string primary
+                    (?router)
+                    (printout ?router 
+                              ?self:chip crlf
+                              ?self:title crlf 
+                              crlf
+                              ?self:pinout
+                              crlf)
+                    (progn$ (?x ?self:expressions)
+                            (printout ?router 
+                                      (send ?x to-string)
+                                      crlf))
+                    (printout ?router 
+                              crlf
+                              crlf
+                              DESCRIPTION
+                              ?self:description))
+
+
 (defgeneric *and)
 (defmethod *and
   (?left ?right)
@@ -180,7 +228,22 @@
              (*xor ?a ?b))
 (deffunction *eq
              (?a ?b)
-             (*not (*xor ?a ?b)))
+             (*or (*and ?a ?b)
+                  (*and (*not ?a) 
+                        (*not ?b))))
+
+(deffunction *eq8
+             (?a0 ?a1 ?a2 ?a3 ?a4 ?a5 ?a6 ?a7
+              ?b0 ?b1 ?b2 ?b3 ?b4 ?b5 ?b6 ?b7)
+             (*and (*eq ?a0 ?b0)
+                   (*eq ?a1 ?b1)
+                   (*eq ?a2 ?b2)
+                   (*eq ?a3 ?b3)
+                   (*eq ?a4 ?b4)
+                   (*eq ?a5 ?b5)
+                   (*eq ?a6 ?b6)
+                   (*eq ?a7 ?b7)))
+
 
 ;; @todo add support for multiple parents for sub expressions
 (deffunction *mux21
@@ -455,3 +518,7 @@
 ;; we don't support distributing or to and for two reasons:
 ;; 1. The gal chips treat or statements as separate groups of and statements
 ;; 2. Implementing both kinds will result in an infinite loop!
+
+
+;; @todo add support for demorgan operations to allow us to not an entire block of ands or ors
+
