@@ -69,16 +69,16 @@
 
 (defmessage-handler binary-expression to-string primary
                     ()
-                    (str-cat
-                             (send (nth$ 1 
-                                         (dynamic-get children))
-                                   to-string)
-                             " "
-                             (dynamic-get operator)
-                             " "
-                             (send (nth$ 2 
-                                         (dynamic-get children))
-                                   to-string)))
+                    (bind ?message
+                          (send (nth$ 1 (dynamic-get children)) 
+                                to-string))
+                    (progn$ (?c (rest$ (dynamic-get children)))
+                            (bind ?message
+                                  (str-cat ?message 
+                                           " " (dynamic-get operator) " "
+                                           (send ?c to-string))))
+                    ?message)
+                                  
 (defclass MAIN::unary-expression
   (is-a expression)
   (multislot children
@@ -138,6 +138,10 @@
 
 (defclass MAIN::assignment-expression
   (is-a binary-expression)
+  (multislot children
+             (source composite)
+             (range 2 2)
+             (default ?NONE))
   (slot operator
         (source composite)
         (default =))
@@ -531,3 +535,26 @@
                        (parent FALSE))
          =>
          (printout stdout (send ?f to-string) crlf))
+(deffacts MAIN::allowed-flattening-targets
+          (can-flatten and-expression)
+          (can-flatten or-expression))
+
+(defrule MAIN::flatten-legal-expressions
+         "if we detect that we have an expression that has the same type as a child then merge; register new types via the fact interface to take advantage of this"
+         (stage (current flatten))
+         (can-flatten ?target)
+         ?f <- (object (is-a ?target)
+                       (kind ?op)
+                       (name ?name)
+                       (parent ?p)
+                       (children $?children))
+         ?f2 <- (object (is-a ?target)
+                        (name ?p)
+                        (kind ?op)
+                        (children $?a ?name $?b))
+         =>
+         (unmake-instance ?f)
+         (recompute-parent ?children)
+         (modify-instance ?f2 
+                          (children $?a ?children $?b)))
+
