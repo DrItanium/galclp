@@ -26,14 +26,17 @@
              (?a ?b)
              (*or (*and (*not ?a) ?b)
                   (*and ?a (*not ?b))))
+(deffunction *xnor 
+             (?a ?b)
+             (*or (*and ?a ?b)
+                  (*and (*not ?a)
+                        (*not ?b))))
 (deffunction *neq
              (?a ?b)
              (*xor ?a ?b))
 (deffunction *eq
              (?a ?b)
-             (*or (*and ?a ?b)
-                  (*and (*not ?a) 
-                        (*not ?b))))
+             (*xnor ?a ?b))
 
 (deffunction *eq2
              (?a0 ?a1
@@ -69,4 +72,5 @@
              (*mux1->2 ?c2
                      (*mux2->4 ?c0 ?c1 ?a ?b ?c ?d)
                      (*mux2->4 ?c0 ?c1 ?e ?f ?g ?h)))
+
 

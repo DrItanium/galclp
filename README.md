@@ -11,11 +11,12 @@ But I would just like to do this:
 
 C = A ^ B
 
-This is also really annoying as well:
 
-/C = A * B
+This is a CLIPS expert system which allows you to do very complex expressions
+and it will make sure that it is properly expressed that the GAL assembler will
+understand. It's final product is a pld script which can be used with
+galette/GALasm.
 
-Instead I would like to do this following: 
+An example of how it works can be found in test/test.pld
 
-C = /(A * B)
 
