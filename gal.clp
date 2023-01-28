@@ -644,9 +644,9 @@
                              (args))))
 
 (defrule MAIN::fulfill-clone-request
-         ?f <- (annotation (kind ?kind))
          (annotation-clone-request (target-kind ?kind)
                                    (new-name ?new-kind))
+         ?f <- (annotation (kind ?kind))
          =>
          (duplicate ?f 
                     (kind ?new-kind)))
