@@ -60,6 +60,7 @@
                    (default ?NONE)))
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
+
 (defclass MAIN::expression
   (is-a USER)
   (slot parent
@@ -78,6 +79,16 @@
              (storage local)
              (visibility public)))
 
+(defclass MAIN::source
+  "A leaf node which has no further follow setup"
+  (is-a USER)
+  (slot title
+        (type SYMBOL)
+        (storage local)
+        (visibility public)
+        (default ?NONE))
+  (message-handler to-string primary))
+(defmessage-handler source to-string () (str-cat ?self:title))
 
 (defclass MAIN::binary-expression
   (is-a expression)
@@ -650,3 +661,27 @@
          =>
          (duplicate ?f 
                     (kind ?new-kind)))
+
+
+(defrule MAIN::create-sources
+         (stage (current correlate))
+         (annotation (kind input-to)
+                     (target ?name)
+                     (args $?targets))
+         =>
+         (bind ?source
+               (make-instance of source
+                              (title ?name)))
+         (progn$ (?t ?targets)
+                 (assert (replace ?name with ?source in ?t))))
+(defrule MAIN::perform-entry-replacement
+         (stage (current correlate))
+         ?f <- (replace ?name with ?source in ?t)
+         ?k <- (object (is-a expression)
+                       (name ?t)
+                       (children $?a ?name $?b))
+         =>
+         (retract ?f)
+         (modify-instance ?k
+                          (children ?a ?source ?b)))
+
