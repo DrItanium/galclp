@@ -325,10 +325,12 @@
          (declare (salience 10000))
          (object (is-a expression)
                  (name ?name)
-                 (children $? ?n&:(instancep ?n) $?))
+                 (children $? ?n $?))
          ?f2 <- (object (is-a expression)
                         (name ~?name)
                         (children $?a ?n $?b))
+         (object (is-a expression)
+                 (name ?n))
          =>
          (modify-instance ?f2
                           (children ?a (duplicate-instance ?n (parent FALSE)) ?b)))
