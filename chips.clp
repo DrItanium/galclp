@@ -49,7 +49,7 @@
         (storage local)
         (visibility public)))
 
-        
+
 
 (defclass gal-pin
   (is-a USER)
@@ -62,3 +62,71 @@
         (visibility public)
         (range 0 ?VARIABLE)))
 
+(defclass fuse
+  (is-a USER)
+  (slot name 
+        (storage local)
+        (visibility public))
+  (slot location
+        (type INTEGER)
+        (storage local)
+        (visibility public)
+        (range 0 ?VARIABLE)
+        (default ?NONE)))
+
+(deftemplate gal-chip-description
+             (slot name
+                   (type SYMBOL)
+                   (default ?NONE))
+             (slot olmc-count
+                   (type INTEGER)
+                   (range 0 ?VARIABLE)
+                   (default ?NONE))
+             (slot pin-count
+                   (type INTEGER)
+                   (range 0 ?VARIABLE)
+                   (default ?NONE))
+             (slot olmc-first-pin
+                   (type INTEGER)
+                   (range 0 ?VARIABLE)
+                   (default ?NONE))
+             (slot column-count
+                   (type INTEGER)
+                   (range 0 ?VARIABLE)
+                   (default ?NONE)))
+(defglobal MAIN
+           ?*acw-adr* = 60
+           ?*security-adr* = 61
+           ?*erase-adr* = 63
+           ?*sig-addr20ra10* = 40
+           ?*max-fuse-adr20ra10* = 39
+           ?*sig-addr22v10* = 44
+           ?*max-fuse-adr22v10* = 43
+           ?*sig-adr20* = 40
+           ?*max-fuse-adr20* = 39
+           ?*sig-adr16* = 32
+           ?*max-fuse-adr16* = 31)
+(deffacts MAIN::gal-chips
+          (gal-chip-description (name GAL16V8)
+                                (olmc-count 8)
+                                (pin-count 20)
+                                (olmc-first-pin 12)
+                                (column-count (+ ?*max-fuse-adr16* 1)))
+          (gal-chip-description (name GAL20V8)
+                                (olmc-count 8)
+                                (pin-count 24)
+                                (olmc-first-pin 15)
+                                (column-count (+ ?*max-fuse-adr20* 1)))
+
+          (gal-chip-description (name GAL22RA10)
+                                (olmc-count 10)
+                                (pin-count 24)
+                                (olmc-first-pin 14)
+                                (column-count (+ ?*max-use-adr20ra10* 1)))
+
+          (gal-chip-description (name GAL22V10)
+                                (olmc-count 10)
+                                (pin-count 24)
+                                (olmc-first-pin 14)
+                                (column-count (+ ?*max-use-adr22v10* 1)))
+    )
