@@ -22,7 +22,6 @@
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
 (include lib/stage.clp)
-(include lib/annotation.clp)
 (deffunction begin
              ()
              )
@@ -49,7 +48,7 @@
 
 
 
-
+(include logic/annotations/types.clp)
 (include logic/pld/types.clp)
 (include logic/parent_ident/types.clp)
 (include logic/expression/types.clp)
