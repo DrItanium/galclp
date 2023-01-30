@@ -36,23 +36,25 @@
                                         A19
                                         A20))))
               )
+(deffacts MAIN::output
+          (finish [the-pld]
+                  result.pld))
+(defrule MAIN::emit-output
+         (stage (current display))
+         ?f <- (finish ?instance 
+                       ?path)
+         =>
+         (retract ?f)
+         (bind ?title
+               (gensym*))
+         (if (open ?path 
+                   ?title "w") then
+           (send ?instance 
+                 to-string 
+                 ?title)
+           (close ?title)
+           else
+           (printout stdout 
+                     "ERROR: could not open " ?path " for writing!"
+                     crlf)))
 
-(reset)
-(run)
-(deffunction finish
-             (?instance ?file)
-             (bind ?title
-                   (gensym*))
-             (if (open ?file ?title "w") then
-               (send ?instance 
-                     to-string 
-                     ?title)
-               (close ?title)
-               else
-               (printout stdout 
-                         "ERROR: could not open " ?file " for writing!"
-                         crlf)))
-
-(finish [the-pld]
-        result.pld)
-(exit)
