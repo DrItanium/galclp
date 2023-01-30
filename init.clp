@@ -30,7 +30,6 @@
 (include logic/pld/types.clp)
 (include logic/parent_ident/types.clp)
 (include logic/expression/types.clp)
-(include lib/extensions.clp)
 
 (deffunction MAIN::begin
              ()
