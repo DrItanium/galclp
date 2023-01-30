@@ -249,68 +249,10 @@
              (make-instance of identity-expression
                             (children ?a)))
 
-(deftemplate MAIN::parent-claim
-             (slot parent
-                   (type INSTANCE)
-                   (default ?NONE))
-             (slot target
-                   (type INSTANCE)
-                   (default ?NONE)))
 (include lib/extensions.clp)
-;; parent recompute operations
-(defrule MAIN::fix-parents
-         (declare (salience 10000))
-         (object (is-a expression)
-                 (name ?parent)
-                 (children $? ?n $?))
-         ?child <- (object (is-a expression)
-                           (name ?n)
-                           (parent ~?parent))
-         =>
-         (assert (parent-claim (parent ?parent)
-                               (target ?n))))
+(include logic/parent_ident/types.clp)
 
-(defrule MAIN::parent-collision-detected
-         (declare (salience 10000))
-         ?f <- (parent-claim (parent ?parent)
-                             (target ?n))
-         ?f2 <- (parent-claim (parent ?parent2)
-                              (target ?n))
-         (test (neq ?f ?f2))
-         ?k <- (object (is-a expression)
-                       (name ?parent2)
-                       (children $?a ?n $?b))
-         =>
-         (retract ?f2)
-         (modify-instance ?k
-                          (children ?a 
-                                    (duplicate-instance ?n (parent FALSE))
-                                    ?b)))
-
-(defrule MAIN::fulfill-parent-claims
-         ?f <- (parent-claim (parent ?parent)
-                             (target ?n))
-         ?k <- (object (is-a expression)
-                       (name ?n))
-         =>
-         (retract ?f)
-         (modify-instance ?k
-                          (parent ?parent)))
-;; in case we accidentally created unintentional copies we need to fix them up
-(defrule MAIN::validate-no-duplicate-entries
-         (declare (salience 10000))
-         (object (is-a expression)
-                 (name ?name)
-                 (children $? ?n $?))
-         ?f2 <- (object (is-a expression)
-                        (name ~?name)
-                        (children $?a ?n $?b))
-         (object (is-a expression)
-                 (name ?n))
-         =>
-         (modify-instance ?f2
-                          (children ?a (duplicate-instance ?n (parent FALSE)) ?b)))
-
+(include logic/parent_ident/logic.clp)
 
 
 ;; reductions
