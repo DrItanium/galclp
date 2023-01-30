@@ -56,6 +56,7 @@
 
 (include logic/parent_ident/logic.clp)
 (include logic/pld/logic.clp)
+(include logic/annotations/logic.clp)
 
 ;; reductions
 
@@ -300,18 +301,6 @@
          (modify-instance ?f
                           (children ?a ?b ?c ?d)))
 
-(defrule MAIN::merge-redundant-annotations
-         ?f <- (annotation (target ?target)
-                           (kind ?k)
-                           (args $?args0))
-         ?f2 <- (annotation (target ?target)
-                            (kind ?k)
-                            (args $?args1))
-         (test (neq ?f ?f2))
-         =>
-         (modify ?f 
-                 (args ?args0 ?args1))
-         (retract ?f2))
 
 (defrule MAIN::annotate-child-expression-nodes
          (stage (current discovery))
@@ -337,27 +326,7 @@
                              (kind non-expression-node)
                              (args ?child))))
 
-(defrule MAIN::define-reverse-annotation
-         "In the cases where args is non empty then we can do a reverse back channel easily"
-         ?f <- (annotation (target ?target)
-                           (kind ?kind)
-                           (reversible TRUE)
-                           (args $?args))
-         =>
-         (progn$ (?a ?args)
-                 (duplicate ?f
-                            (target ?a)
-                            (reversible FALSE)
-                            (kind (sym-cat reverse- ?kind))
-                            (args ?target))))
 
-(defrule MAIN::settify-annotation-args
-         "If the annotation isn't order dependent then it means you want it to only contain unique entries"
-         ?f <- (annotation (order-is-important FALSE)
-                           (args $?a ?b $?c ?b $?d))
-         =>
-         (modify ?f 
-                 (args ?a ?b ?c ?d)))
 
 
 (deffacts MAIN::clone-requests
@@ -376,13 +345,6 @@
                              (kind leaf-node)
                              (args))))
 
-(defrule MAIN::fulfill-clone-request
-         (annotation-clone-request (target-kind ?kind)
-                                   (new-name ?new-kind))
-         ?f <- (annotation (kind ?kind))
-         =>
-         (duplicate ?f 
-                    (kind ?new-kind)))
 
 
 (defrule MAIN::create-sources
@@ -406,4 +368,5 @@
          (retract ?f)
          (modify-instance ?k
                           (children ?a ?source ?b)))
+
 
