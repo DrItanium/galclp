@@ -26,6 +26,12 @@
 (include logic/source-ident/module.clp)
 (include logic/pld/module.clp)
 (include logic/stages/types.clp)
+(include logic/annotations/types.clp)
+(include logic/pld/types.clp)
+(include logic/parent_ident/types.clp)
+(include logic/expression/types.clp)
+(include lib/extensions.clp)
+
 (deffunction MAIN::begin
              ()
              )
@@ -37,16 +43,17 @@
                        correlate
                        display)))
 
+(deffacts MAIN::allowed-identity-conversions
+          (convert-to-identity and-expression)
+          (convert-to-identity or-expression))
 
+(deffacts MAIN::allowed-flattening-targets
+          (can-flatten and-expression)
+          (can-flatten or-expression))
 
-
-
-
-(include logic/annotations/types.clp)
-(include logic/pld/types.clp)
-(include logic/parent_ident/types.clp)
-(include logic/expression/types.clp)
-(include lib/extensions.clp)
+(deffacts MAIN::clone-requests
+          (annotation-clone-request (target-kind reverse-non-expression-node)
+                                    (new-name input-to)))
 
 (include logic/parent_ident/logic.clp)
 (include logic/pld/logic.clp)
@@ -229,9 +236,6 @@
                         (children ?statements)))
 
 ;; @todo reimplement redundant expression detection after I implement flattening
-(deffacts MAIN::allowed-identity-conversions
-          (convert-to-identity and-expression)
-          (convert-to-identity or-expression))
 (defrule MAIN::perform-convert-to-identity
          (stage (current optimization-stage1))
          (convert-to-identity ?expr)
@@ -250,9 +254,6 @@
                        (parent FALSE))
          =>
          (printout stdout (send ?f to-string) crlf))
-(deffacts MAIN::allowed-flattening-targets
-          (can-flatten and-expression)
-          (can-flatten or-expression))
 
 (defrule MAIN::flatten-legal-expressions
          "if we detect that we have an expression that has the same type as a child then merge; register new types via the fact interface to take advantage of this"
@@ -317,9 +318,6 @@
 
 
 
-(deffacts MAIN::clone-requests
-          (annotation-clone-request (target-kind reverse-non-expression-node)
-                                    (new-name input-to)))
 
 (defrule MAIN::identify-leaf-nodes
          (declare (salience -1))
