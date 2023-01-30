@@ -52,10 +52,15 @@
                                     ?b)))
 
 (defrule MAIN::fulfill-parent-claims
+         "Make sure that we fulfill parent claims after all have been resolved but before we continue normal execution"
+         (declare (salience 9999))
          ?f <- (parent-claim (parent ?parent)
                              (target ?n))
          ?k <- (object (is-a expression)
                        (name ?n))
+         (object (is-a expression)
+                 (name ?parent)
+                 (children $? ?n $?))
          =>
          (retract ?f)
          (modify-instance ?k
@@ -74,3 +79,4 @@
          =>
          (modify-instance ?f2
                           (children ?a (duplicate-instance ?n (parent FALSE)) ?b)))
+

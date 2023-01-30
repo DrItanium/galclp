@@ -38,8 +38,8 @@
 (deffacts MAIN::stages
           (stage (current optimization-stage1)
                  (rest flatten
-                       discovery
-                       correlate
+;                       discovery
+;                       correlate
                        display)))
 
 (deffacts MAIN::allowed-identity-conversions
@@ -76,7 +76,6 @@
                        (name ?orexp)
                        (parent ?top)
                        (children ?left ?right))
-
          =>
          (unmake-instance ?f ?k)
          (make-instance ?top of or-expression
