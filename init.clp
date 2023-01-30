@@ -21,8 +21,12 @@
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
-(import lib/stage.clp)
-(import lib/annotation.clp)
+(include lib/stage.clp)
+(include lib/annotation.clp)
+(deffunction begin
+             ()
+             )
+
 (deffacts MAIN::stages
           (stage (current optimization-stage1)
                  (rest flatten
