@@ -54,6 +54,12 @@
           (annotation-clone-request (target-kind reverse-non-expression-node)
                                     (new-name input-to)))
 
+(deffacts MAIN::pld-emission-requests
+          (annotation (target display)
+                      (kind focus-on-stage)
+                      (reversible FALSE)
+                      (args EmitPLDLogic)))
+
 (include logic/parent_ident/logic.clp)
 (include logic/pld/logic.clp)
 (include logic/annotations/logic.clp)
@@ -199,10 +205,11 @@
                              (kind leaf-node)
                              (args))))
 
-
-
-(defrule MAIN::emit-plds
-         (stage (current display))
+(defrule MAIN::go-to-focus
+         (stage (current ?stage))
+         (annotation (target ?stage)
+                     (kind focus-on-stage)
+                     (args $?modules))
          =>
-         ; walk into emitter logic
-         (focus EmitPLDLogic))
+         (focus (expand$ ?modules)))
+
