@@ -25,7 +25,7 @@
            (export ?ALL))
 (include logic/source-ident/module.clp)
 (include logic/pld/module.clp)
-(include lib/stage.clp)
+(include logic/stages/types.clp)
 (deffunction MAIN::begin
              ()
              )
@@ -51,6 +51,7 @@
 (include logic/parent_ident/logic.clp)
 (include logic/pld/logic.clp)
 (include logic/annotations/logic.clp)
+(include logic/stages/logic.clp)
 
 ;; reductions
 
@@ -242,13 +243,6 @@
          (make-instance ?name of identity-expression
                         (children ?a)))
 
-(defrule MAIN::next-stage
-         (declare (salience -10000))
-         ?f <- (stage (rest ?next $?rest))
-         =>
-         (modify ?f 
-                 (current ?next)
-                 (rest ?rest)))
 
 (defrule MAIN::display-top-levels-to-console
          (stage (current display))
