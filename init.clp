@@ -33,26 +33,6 @@
                        discovery
                        correlate
                        display)))
-(defmessage-handler OBJECT to-string primary () (str-cat ?self))
-(defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
-
-(defclass MAIN::expression
-  (is-a USER)
-  (slot parent
-        (type INSTANCE
-              SYMBOL)
-        (allowed-symbols FALSE)
-        (storage local)
-        (visibility public)
-        (default-dynamic FALSE))
-  (slot kind
-        (type LEXEME)
-        (storage local)
-        (visibility public)
-        (default ?NONE))
-  (multislot children
-             (storage local)
-             (visibility public)))
 
 (defclass MAIN::source
   "A leaf node which has no further follow setup"
@@ -65,195 +45,18 @@
   (message-handler to-string primary))
 (defmessage-handler source to-string () (str-cat ?self:title))
 
-(defclass MAIN::binary-expression
-  (is-a expression)
-  (multislot children
-             (source composite)
-             (default ?NONE))
-  (slot operator
-        (storage shared)
-        (visibility public)
-        (default NEED_TO_OVERRIDE!))
-  (message-handler to-string primary))
-
-(defmessage-handler binary-expression to-string primary
-                    ()
-                    (bind ?message
-                          (send (nth$ 1 (dynamic-get children)) 
-                                to-string))
-                    (progn$ (?c (rest$ (dynamic-get children)))
-                            (bind ?message
-                                  (str-cat ?message 
-                                           " " (dynamic-get operator) " "
-                                           (send ?c to-string))))
-                    ?message)
-
-(defclass MAIN::unary-expression
-  (is-a expression)
-  (multislot children
-             (source composite)
-             (range 1 1)
-             (default ?NONE))
-  (slot operator
-        (storage shared)
-        (visibility public)
-        (default NEED_TO_OVERRIDE!))
-  (message-handler to-string primary))
-
-(defmessage-handler unary-expression to-string primary
-                    ()
-                    (str-cat (dynamic-get operator) 
-                             (send (nth$ 1 
-                                         (dynamic-get children))
-                                   to-string)))
 
 
-(defclass MAIN::not-expression
-  (is-a unary-expression)
-  (slot operator
-        (source composite)
-        (default "/"))
-  (slot kind
-        (source composite)
-        (default-dynamic not)))
 
 
-(defclass MAIN::identity-expression
-  (is-a unary-expression)
-  (slot operator
-        (source composite)
-        (default ""))
-  (slot kind
-        (source composite)
-        (default-dynamic identity)))
 
-(defclass MAIN::and-expression
-  (is-a binary-expression)
-  (slot operator
-        (source composite)
-        (default *))
-  (slot kind
-        (source composite)
-        (default-dynamic and)))
-
-(defclass MAIN::or-expression
-  (is-a binary-expression)
-  (slot operator
-        (source composite)
-        (default +))
-  (slot kind
-        (source composite)
-        (default-dynamic or)))
-
-(defclass MAIN::assignment-expression
-  (is-a binary-expression)
-  (multislot children
-             (source composite)
-             (range 2 2)
-             (default ?NONE))
-  (slot operator
-        (source composite)
-        (default =))
-  (slot kind
-        (source composite)
-        (default-dynamic assignment)))
-
-(defclass MAIN::pld
-  (is-a USER)
-  (slot chip
-        (type SYMBOL)
-        (storage local)
-        (visibility public)
-        (default ?NONE))
-  (slot title 
-        (type SYMBOL)
-        (storage local)
-        (visibility public)
-        (default ?NONE))
-  (multislot pinout
-             (type STRING)
-             (storage local)
-             (visibility public)
-             (default ?NONE))
-  (multislot expressions
-             (type INSTANCE)
-             (storage local)
-             (visibility public)
-             (default ?NONE))
-  (multislot description
-             (type STRING)
-             (storage local)
-             (visibility public)
-             (default ?NONE))
-  (message-handler to-string primary))
-
-(defmessage-handler pld to-string primary
-                    (?router)
-                    (printout ?router 
-                              ?self:chip crlf
-                              ?self:title crlf 
-                              crlf)
-                    (progn$ (?l ?self:pinout)
-                            (printout ?router ?l crlf))
-                    (progn$ (?x ?self:expressions)
-                            (printout ?router 
-                                      (send ?x to-string)
-                                      crlf))
-                    (printout ?router crlf crlf DESCRIPTION crlf)
-                    (progn$ (?d ?self:description)
-                            (printout ?router ?d crlf)))
-
-
-(defgeneric *and)
-(defmethod *and
-  (?left ?right)
-  (make-instance of and-expression
-                 (children ?left ?right)))
-(defmethod *and
-  (?a ?b (?rest MULTIFIELD))
-  (*and ?a ?b
-        (expand$ ?rest)))
-
-(defmethod *and
-  (?a ?b $?rest)
-  (*and (*and ?a ?b)
-        (expand$ ?rest)))
-
-(defgeneric *or)
-(defmethod *or
-  (?a ?b)
-  (make-instance of or-expression
-                 (children ?a ?b)))
-(defmethod *or
-  (?a ?b $?rest)
-  (*or (*or ?a ?b)
-       (expand$ ?rest)))
-(defmethod *or
-  (?a ?b (?rest MULTIFIELD))
-  (*or ?a ?b
-       (expand$ ?rest)))
-
-
-(deffunction *not
-             (?a)
-             (make-instance of not-expression
-                            (children ?a)))
-
-(deffunction *assign
-             (?dest ?expression)
-             (make-instance of assignment-expression
-                            (children ?dest
-                                      ?expression)))
-(deffunction *identity
-             (?a)
-             (make-instance of identity-expression
-                            (children ?a)))
-
-(include lib/extensions.clp)
+(include logic/pld/types.clp)
 (include logic/parent_ident/types.clp)
+(include logic/expression/types.clp)
+(include lib/extensions.clp)
 
 (include logic/parent_ident/logic.clp)
-
+(include logic/pld/logic.clp)
 
 ;; reductions
 

@@ -20,12 +20,23 @@
 ; ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-; A simple expert system to make it easier to write gal equations with more complex features
-(include logic/expression/types.clp)
-(deftemplate MAIN::parent-claim
-             (slot parent
-                   (type INSTANCE)
-                   (default ?NONE))
-             (slot target
-                   (type INSTANCE)
-                   (default ?NONE)))
+
+(defrule MAIN::emit-output
+         (stage (current display))
+         ?f <- (finish ?instance 
+                       ?path)
+         =>
+         (retract ?f)
+         (bind ?title
+               (gensym*))
+         (if (open ?path 
+                   ?title "w") then
+           (send ?instance 
+                 to-string 
+                 ?title)
+           (close ?title)
+           else
+           (printout stdout 
+                     "ERROR: could not open " ?path " for writing!"
+                     crlf)))
+
