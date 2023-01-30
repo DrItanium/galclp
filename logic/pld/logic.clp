@@ -23,15 +23,14 @@
 
 (defrule MAIN::emit-output
          (stage (current display))
-         ?f <- (finish ?instance 
-                       ?path)
+         ?k <- (object (is-a pld)
+                       (output-path ?path))
          =>
-         (retract ?f)
          (bind ?title
                (gensym*))
          (if (open ?path 
                    ?title "w") then
-           (send ?instance 
+           (send ?k
                  to-string 
                  ?title)
            (close ?title)

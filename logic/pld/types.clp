@@ -53,7 +53,6 @@
         (storage local)
         (visibility public)
         (default ?NONE))
-  (message-handler init after)
   (message-handler to-string primary))
 
 (defmessage-handler pld to-string primary
@@ -72,7 +71,3 @@
                     (progn$ (?d ?self:description)
                             (printout ?router ?d crlf)))
 
-(defmessage-handler pld init after
-                    ()
-                    (assert (finish ?self
-                                    (dynamic-get output-path))))
