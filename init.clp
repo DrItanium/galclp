@@ -59,100 +59,8 @@
 (include logic/pld/logic.clp)
 (include logic/annotations/logic.clp)
 (include logic/stages/logic.clp)
+(include logic/expression/logic.clp)
 
-;; reductions
-
-(defrule MAIN::eliminate-not-not
-         "(not (not ?)) should be factored out to an identity node"
-         ?nested <- (object (is-a not-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children ?node))
-         ?p <- (object (is-a not-expression)
-                       (kind not)
-                       (name ?parent)
-                       (children ?nest))
-         =>
-         (unmake-instance ?nested ?p)
-         ; turn not-not into an identity node instead
-         (make-instance ?parent of identity-expression
-                        (children ?node)))
-
-(defrule MAIN::eliminate-identity-identity
-         "(ident (ident ?)) should be flattened"
-         ?nested <- (object (is-a identity-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children ?contents))
-         ?p <- (object (is-a identity-expression)
-                       (name ?parent)
-                       (children ?nest))
-         =>
-         (unmake-instance ?nested)
-         (modify-instance ?p 
-                          (children ?contents)))
-
-(defrule MAIN::identity-not-merge
-         "(identity (not)) => not"
-         ?nested <- (object (is-a not-expression)
-                            (kind not)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children ?contents))
-         ?p <- (object (is-a identity-expression)
-                       (kind identity)
-                       (name ?parent)
-                       (children ?nest))
-         =>
-         (unmake-instance ?nested ?p)
-         (make-instance ?parent of not-expression
-                        (children ?contents)))
-
-(defrule MAIN::not-identity-merge
-         "(not (identity)) => not"
-         ?nested <- (object (is-a identity-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children ?contents))
-         ?p <- (object (is-a not-expression)
-                       (name ?parent)
-                       (children ?nest))
-         =>
-         (unmake-instance ?nested)
-         (modify-instance ?p
-                          (children ?contents)))
-
-(defrule MAIN::identity-binary-merge
-         "(identity (binary-expr)) => (binary-expr)"
-         ?nested <- (object (is-a binary-expression)
-                            (parent ?parent)
-                            (name ?nest)
-                            (children $?nodes)) 
-         ?p <- (object (is-a identity-expression)
-                       (name ?parent)
-                       (parent ?grand)
-                       (children ?nest))
-         =>
-         (bind ?kind
-               (class ?nested))
-         (unmake-instance ?nested ?p)
-         (make-instance ?parent of ?kind
-                        (parent ?grand)
-                        (children $?nodes)))
-
-(defrule MAIN::binary-identity-merge
-         "(binary-expr (identity) ?) => (binary-expr ? ?)"
-         ?nested <- (object (is-a identity-expression)
-                            (parent ?parent)
-                            (name ?node)
-                            (children ?nest))
-         ?p <- (object (is-a binary-expression)
-                       (name ?parent)
-                       (children $?a ?node $?b))
-         =>
-         (unmake-instance ?nested)
-         (modify-instance ?p 
-                          (children ?a ?nest ?b)))
 (defrule MAIN::distribute-and-to-or:left
          " (and (or Q R) P) => (or (and P Q) (and P R))"
          (stage (current optimization-stage1))
@@ -195,45 +103,6 @@
 ;; 2. Implementing both kinds will result in an infinite loop!
 
 
-(defrule MAIN::demorgan-nor
-         " (not (or A B)) => (and (not A) (not B))"
-         ?f <- (object (is-a or-expression)
-                       (parent ?parent)
-                       (name ?orexp)
-                       (children $?children))
-         ?k <- (object (is-a not-expression)
-                       (name ?parent)
-                       (children ?orexp))
-         =>
-         (unmake-instance ?f ?k)
-         (bind ?statements 
-               (create$))
-         (progn$ (?c ?children)
-                 (bind ?statements
-                       ?statements
-                       (*not ?c)))
-         (make-instance ?parent of and-expression
-                        (children ?statements)))
-
-(defrule MAIN::demorgan-nand
-         " (not (and A B)) => (or (not A) (not B))"
-         ?f <- (object (is-a and-expression)
-                       (parent ?parent)
-                       (name ?orexp)
-                       (children $?children))
-         ?k <- (object (is-a not-expression)
-                       (name ?parent)
-                       (children ?orexp))
-         =>
-         (unmake-instance ?f ?k)
-         (bind ?statements 
-               (create$))
-         (progn$ (?c ?children)
-                 (bind ?statements
-                       ?statements
-                       (*not ?c)))
-         (make-instance ?parent of or-expression
-                        (children ?statements)))
 
 ;; @todo reimplement redundant expression detection after I implement flattening
 (defrule MAIN::perform-convert-to-identity

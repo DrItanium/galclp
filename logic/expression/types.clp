@@ -24,6 +24,9 @@
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
 
+(defgeneric MAIN::*and)
+(defgeneric MAIN::*or)
+
 (defclass MAIN::expression
   (is-a USER)
   (slot parent
@@ -134,47 +137,45 @@
         (source composite)
         (default-dynamic assignment)))
 
-(defgeneric *and)
-(defmethod *and
+(defmethod MAIN::*and
   (?left ?right)
   (make-instance of and-expression
                  (children ?left ?right)))
-(defmethod *and
+(defmethod MAIN::*and
   (?a ?b (?rest MULTIFIELD))
   (*and ?a ?b
         (expand$ ?rest)))
 
-(defmethod *and
+(defmethod MAIN::*and
   (?a ?b $?rest)
   (*and (*and ?a ?b)
         (expand$ ?rest)))
 
-(defgeneric *or)
-(defmethod *or
+(defmethod MAIN::*or
   (?a ?b)
   (make-instance of or-expression
                  (children ?a ?b)))
-(defmethod *or
+(defmethod MAIN::*or
   (?a ?b $?rest)
   (*or (*or ?a ?b)
        (expand$ ?rest)))
-(defmethod *or
+(defmethod MAIN::*or
   (?a ?b (?rest MULTIFIELD))
   (*or ?a ?b
        (expand$ ?rest)))
 
 
-(deffunction *not
+(deffunction MAIN::*not
              (?a)
              (make-instance of not-expression
                             (children ?a)))
 
-(deffunction *assign
+(deffunction MAIN::*assign
              (?dest ?expression)
              (make-instance of assignment-expression
                             (children ?dest
                                       ?expression)))
-(deffunction *identity
+(deffunction MAIN::*identity
              (?a)
              (make-instance of identity-expression
                             (children ?a)))
