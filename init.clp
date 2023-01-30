@@ -21,43 +21,14 @@
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
-(deftemplate stage
-             (slot current
-                   (type SYMBOL)
-                   (default ?NONE))
-             (multislot rest
-                        (type SYMBOL)))
+(import lib/stage.clp)
+(import lib/annotation.clp)
 (deffacts MAIN::stages
           (stage (current optimization-stage1)
                  (rest flatten
                        discovery
                        correlate
                        display)))
-(deftemplate MAIN::annotation
-             "A template fact you attach to instances indirectly to describe more information about them"
-             (slot target
-                   (default ?NONE))
-             (slot kind
-                   (type SYMBOL)
-                   (default ?NONE))
-             (slot reversible
-                   (type SYMBOL)
-                   (allowed-symbols TRUE
-                                    FALSE))
-             (slot order-is-important
-                   (type SYMBOL)
-                   (allowed-symbols FALSE
-                                    TRUE))
-             (multislot args
-                        (default ?NONE)))
-(deftemplate MAIN::annotation-clone-request
-             "When generating reverse kind annotations, we can hook into doing name replacements"
-             (slot target-kind
-                   (type SYMBOL)
-                   (default ?NONE))
-             (slot new-name
-                   (type SYMBOL)
-                   (default ?NONE)))
 (defmessage-handler OBJECT to-string primary () (str-cat ?self))
 (defmessage-handler MULTIFIELD to-string primary () (implode$ ?self))
 
