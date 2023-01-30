@@ -256,6 +256,7 @@
              (slot target
                    (type INSTANCE)
                    (default ?NONE)))
+(include lib/extensions.clp)
 ;; parent recompute operations
 (defrule MAIN::fix-parents
          (declare (salience 10000))
