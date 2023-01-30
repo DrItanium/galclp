@@ -24,6 +24,7 @@
 (defmodule MAIN
            (export ?ALL))
 (include logic/source-ident/module.clp)
+(include logic/pld/module.clp)
 (include lib/stage.clp)
 (deffunction MAIN::begin
              ()
@@ -339,3 +340,9 @@
                              (args))))
 
 
+
+(defrule MAIN::emit-plds
+         (stage (current display))
+         =>
+         ; walk into emitter logic
+         (focus EmitPLDLogic))

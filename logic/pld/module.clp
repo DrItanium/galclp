@@ -21,28 +21,5 @@
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(deftemplate MAIN::annotation
-             "A template fact you attach to instances indirectly to describe more information about them"
-             (slot target
-                   (default ?NONE))
-             (slot kind
-                   (type SYMBOL)
-                   (default ?NONE))
-             (slot reversible
-                   (type SYMBOL)
-                   (allowed-symbols TRUE
-                                    FALSE))
-             (slot treat-as-set
-                   (type SYMBOL)
-                   (allowed-symbols TRUE
-                                    FALSE))
-             (multislot args
-                        (default ?NONE)))
-(deftemplate MAIN::annotation-clone-request
-             "When generating reverse kind annotations, we can hook into doing name replacements"
-             (slot target-kind
-                   (type SYMBOL)
-                   (default ?NONE))
-             (slot new-name
-                   (type SYMBOL)
-                   (default ?NONE)))
+(defmodule EmitPLDLogic
+           (import MAIN ?ALL))

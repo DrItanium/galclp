@@ -55,7 +55,7 @@
         (default ?NONE))
   (message-handler to-string primary))
 
-(defmessage-handler pld to-string primary
+(defmessage-handler MAIN::pld to-string primary
                     (?router)
                     (printout ?router 
                               ?self:chip crlf

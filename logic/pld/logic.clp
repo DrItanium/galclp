@@ -21,8 +21,7 @@
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(defrule MAIN::emit-output
-         (stage (current display))
+(defrule EmitPLDLogic::emit-output
          ?k <- (object (is-a pld)
                        (output-path ?path))
          =>

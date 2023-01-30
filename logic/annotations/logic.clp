@@ -52,7 +52,7 @@
 
 (defrule MAIN::settify-annotation-args
          "If the annotation isn't order dependent then it means you want it to only contain unique entries"
-         ?f <- (annotation (order-is-important FALSE)
+         ?f <- (annotation (treat-as-set TRUE)
                            (args $?a ?b $?c ?b $?d))
          =>
          (modify ?f 
