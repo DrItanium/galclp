@@ -21,8 +21,11 @@
 ; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
+(defmodule MAIN
+           (export ?ALL))
+(include logic/source-ident/module.clp)
 (include lib/stage.clp)
-(deffunction begin
+(deffunction MAIN::begin
              ()
              )
 
@@ -33,16 +36,6 @@
                        correlate
                        display)))
 
-(defclass MAIN::source
-  "A leaf node which has no further follow setup"
-  (is-a USER)
-  (slot title
-        (type SYMBOL)
-        (storage local)
-        (visibility public)
-        (default ?NONE))
-  (message-handler to-string primary))
-(defmessage-handler source to-string () (str-cat ?self:title))
 
 
 
@@ -344,29 +337,5 @@
          (assert (annotation (target ?name)
                              (kind leaf-node)
                              (args))))
-
-
-
-(defrule MAIN::create-sources
-         (stage (current correlate))
-         (annotation (kind input-to)
-                     (target ?name)
-                     (args $?targets))
-         =>
-         (bind ?source
-               (make-instance of source
-                              (title ?name)))
-         (progn$ (?t ?targets)
-                 (assert (replace ?name with ?source in ?t))))
-(defrule MAIN::perform-entry-replacement
-         (stage (current correlate))
-         ?f <- (replace ?name with ?source in ?t)
-         ?k <- (object (is-a expression)
-                       (name ?t)
-                       (children $?a ?name $?b))
-         =>
-         (retract ?f)
-         (modify-instance ?k
-                          (children ?a ?source ?b)))
 
 
