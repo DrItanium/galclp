@@ -235,7 +235,7 @@
                           (children ?a ?c)))
 (defrule MAIN::cancel-out-true-false-pairs:following-expression
          "(*and A (*not A) ...) => (and ...)"
-         (stage (current cleanup))
+         ;(stage (current cleanup))
          ?f <- (object (is-a and-expression)
                        (name ?parent)
                        (children $?a ?b $?c ?d $?e))
@@ -249,7 +249,7 @@
                           (children ?a ?c ?e)))
 (defrule MAIN::cancel-out-true-false-pairs:leading-expression
          "(*and (*not A) A...) => (and ...)"
-         (stage (current cleanup))
+         ;(stage (current cleanup))
          ?f <- (object (is-a and-expression)
                        (name ?parent)
                        (children $?a ?b $?c ?d $?e))
@@ -264,7 +264,7 @@
 
 (defrule MAIN::cancel-out-true-false-pairs:following-expression-identity
          "(*and A (*not A) ...) => (and ...)"
-         (stage (current cleanup))
+         ;(stage (current cleanup))
          ?f <- (object (is-a and-expression)
                        (name ?parent)
                        (children $?a ?b $?c ?d $?e))
@@ -283,7 +283,7 @@
 
 (defrule MAIN::cancel-out-true-false-pairs:leading-expression-identity
          "(*and A (*not A) ...) => (and ...)"
-         (stage (current cleanup))
+         ;(stage (current cleanup))
          ?f <- (object (is-a and-expression)
                        (name ?parent)
                        (children $?a ?b $?c ?d $?e))
