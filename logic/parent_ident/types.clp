@@ -22,7 +22,7 @@
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ; A simple expert system to make it easier to write gal equations with more complex features
 (include logic/expression/types.clp)
-(deftemplate MAIN::parent-claim
+(deftemplate ParentIdentification::parent-claim
              (slot parent
                    (type INSTANCE)
                    (default ?NONE))

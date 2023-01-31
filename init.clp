@@ -25,6 +25,7 @@
            (export ?ALL))
 (include logic/source-ident/module.clp)
 (include logic/pld/module.clp)
+(include logic/parent_ident/module.clp)
 (include logic/stages/types.clp)
 (include logic/annotations/types.clp)
 (include logic/pld/types.clp)

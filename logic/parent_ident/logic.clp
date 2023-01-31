@@ -22,8 +22,8 @@
 ; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ;; parent recompute operations
-(defrule MAIN::fix-parents
-         (declare (salience 10000))
+(defrule ParentIdentification::fix-parents
+         (declare (salience 1))
          (object (is-a expression)
                  (name ?parent)
                  (children $? ?n $?))
@@ -34,12 +34,12 @@
          (assert (parent-claim (parent ?parent)
                                (target ?n))))
 
-(defrule MAIN::parent-collision-detected
-         (declare (salience 10000))
-         ?f <- (parent-claim (parent ?parent)
-                             (target ?n))
-         ?f2 <- (parent-claim (parent ?parent2)
-                              (target ?n))
+(defrule ParentIdentification::parent-collision-detected
+         (declare (salience 1))
+         ?f <- (parent-claim (target ?n)
+                             (parent ?parent))
+         ?f2 <- (parent-claim (target ?n)
+                              (parent ?parent2))
          (test (neq ?f ?f2))
          ?k <- (object (is-a expression)
                        (name ?parent2)
@@ -51,9 +51,8 @@
                                     (duplicate-instance ?n (parent FALSE))
                                     ?b)))
 
-(defrule MAIN::fulfill-parent-claims
+(defrule ParentIdentification::fulfill-parent-claims
          "Make sure that we fulfill parent claims after all have been resolved but before we continue normal execution"
-         (declare (salience 9999))
          ?f <- (parent-claim (parent ?parent)
                              (target ?n))
          ?k <- (object (is-a expression)
@@ -80,3 +79,21 @@
          (modify-instance ?f2
                           (children ?a (duplicate-instance ?n (parent FALSE)) ?b)))
 
+(defrule MAIN::found-need-for-parent-identification
+         "Whenever the parent of a expression mismatches then enter the identification module"
+         (object (is-a expression)
+                 (name ?parent)
+                 (children $? ?n $?))
+         (object (is-a expression)
+                 (name ?n)
+                 (parent ~?parent))
+         =>
+         (assert (need-parent-identification)))
+         ;(focus ParentIdentification))
+
+(defrule MAIN::do-parent-identification
+         (declare (salience -1))
+         ?f <- (need-parent-identification)
+         =>
+         (retract ?f)
+         (focus ParentIdentification))
