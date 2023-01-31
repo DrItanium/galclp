@@ -88,12 +88,4 @@
                  (name ?n)
                  (parent ~?parent))
          =>
-         (assert (need-parent-identification)))
-         ;(focus ParentIdentification))
-
-(defrule MAIN::do-parent-identification
-         (declare (salience -1))
-         ?f <- (need-parent-identification)
-         =>
-         (retract ?f)
          (focus ParentIdentification))
