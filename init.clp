@@ -38,10 +38,11 @@
 
 (deffacts MAIN::stages
           (stage (current optimization-stage1)
-                 (rest ;flatten
-                       ;discovery
-                       ;correlate
-                       display)))
+                 (rest flatten
+                   discovery
+                   correlate
+                   cleanup
+                   display)))
 
 (deffacts MAIN::allowed-identity-conversions
           (convert-to-identity and-expression)
@@ -213,3 +214,88 @@
          =>
          (focus (expand$ ?modules)))
 
+
+(defrule MAIN::drop-expressions-with-no-children
+         "Drop expressions with no children"
+         ?f <- (object (is-a expression)
+                       (name ?name)
+                       (children))
+         =>
+         (assert (removed ?name))
+         (unmake-instance ?f))
+
+(defrule MAIN::remove-dropped-children
+         "If we find instance names which no longer reference anything, then remove them!"
+         ?x <- (removed ?b)
+         ?f <- (object (is-a expression)
+                       (children $?a ?b $?c))
+         =>
+         (retract ?x)
+         (modify-instance ?f
+                          (children ?a ?c)))
+(defrule MAIN::cancel-out-true-false-pairs:following-expression
+         "(*and A (*not A) ...) => (and ...)"
+         (stage (current cleanup))
+         ?f <- (object (is-a and-expression)
+                       (name ?parent)
+                       (children $?a ?b $?c ?d $?e))
+         ?z <- (object (is-a not-expression)
+                       (name ?d)
+                       (children ?b))
+         =>
+         (unmake-instance ?z)
+         (assert (removed ?d))
+         (modify-instance ?f
+                          (children ?a ?c ?e)))
+(defrule MAIN::cancel-out-true-false-pairs:leading-expression
+         "(*and (*not A) A...) => (and ...)"
+         (stage (current cleanup))
+         ?f <- (object (is-a and-expression)
+                       (name ?parent)
+                       (children $?a ?b $?c ?d $?e))
+         ?z <- (object (is-a not-expression)
+                       (name ?b)
+                       (children ?d))
+         =>
+         (unmake-instance ?z)
+         (assert (removed ?b))
+         (modify-instance ?f
+                          (children ?a ?c ?e)))
+
+(defrule MAIN::cancel-out-true-false-pairs:following-expression-identity
+         "(*and A (*not A) ...) => (and ...)"
+         (stage (current cleanup))
+         ?f <- (object (is-a and-expression)
+                       (name ?parent)
+                       (children $?a ?b $?c ?d $?e))
+         ?r <- (object (is-a identity-expression)
+                       (name ?b)
+                       (children ?k))
+         ?z <- (object (is-a not-expression)
+                       (name ?d)
+                       (children ?k))
+         =>
+         (unmake-instance ?r ?z)
+         (assert (removed ?b)
+                 (removed ?d))
+         (modify-instance ?f
+                          (children ?a ?c ?e)))
+
+(defrule MAIN::cancel-out-true-false-pairs:leading-expression-identity
+         "(*and A (*not A) ...) => (and ...)"
+         (stage (current cleanup))
+         ?f <- (object (is-a and-expression)
+                       (name ?parent)
+                       (children $?a ?b $?c ?d $?e))
+         ?r <- (object (is-a identity-expression)
+                       (name ?d)
+                       (children ?k))
+         ?z <- (object (is-a not-expression)
+                       (name ?b)
+                       (children ?k))
+         =>
+         (unmake-instance ?r ?z)
+         (assert (removed ?b)
+                 (removed ?d))
+         (modify-instance ?f
+                          (children ?a ?c ?e)))
