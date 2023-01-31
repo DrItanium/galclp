@@ -1,0 +1,5 @@
+#!/bin/bash
+
+rm result.pld
+maya-app --f2 test/SRAMCardDecoder.clp
+diff result.pld test/SRAMCardDecoder_control.pld
