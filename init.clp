@@ -62,6 +62,14 @@
                       (reversible FALSE)
                       (args EmitPLDLogic)))
 
+(deffacts MAIN::structurally-similar-unary-nodes
+          (annotation (target not-expression)
+                      (kind allow-fusion)
+                      (args))
+          (annotation (target identity-expression)
+                      (kind allow-fusion)
+                      (args)))
+
 (include logic/parent_ident/logic.clp)
 (include logic/pld/logic.clp)
 (include logic/annotations/logic.clp)
@@ -282,7 +290,7 @@
                           (children ?a ?c ?e)))
 
 (defrule MAIN::cancel-out-true-false-pairs:leading-expression-identity
-         "(*and A (*not A) ...) => (and ...)"
+         "(*and (*not A) A ...) => (and ...)"
          ;(stage (current cleanup))
          ?f <- (object (is-a and-expression)
                        (name ?parent)
@@ -299,3 +307,23 @@
                  (removed ?d))
          (modify-instance ?f
                           (children ?a ?c ?e)))
+(defrule MAIN::fuse-structurally-similar-nodes
+         "(*and /A /A ...) => (*and /A ...) || (*and A A ...) => (*and A ...)"
+         ;(stage (current cleanup))
+         (annotation (target ?kind)
+                     (kind allow-fusion))
+         ?f <- (object (is-a and-expression)
+                       (name ?parent)
+                       (children $?a ?first $?c ?second $?e))
+         (object (is-a ?kind)
+                 (name ?first)
+                 (children ?k))
+         (object (is-a ?kind)
+                 (name ?second)
+                 (children ?k))
+         =>
+         (unmake-instance ?second)
+         (assert (removed ?second))
+         (modify-instance ?f
+                          (children ?a ?first ?c ?e)))
+
