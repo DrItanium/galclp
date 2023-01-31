@@ -38,9 +38,9 @@
 
 (deffacts MAIN::stages
           (stage (current optimization-stage1)
-                 (rest flatten
-;                       discovery
-;                       correlate
+                 (rest ;flatten
+                       ;discovery
+                       ;correlate
                        display)))
 
 (deffacts MAIN::allowed-identity-conversions
