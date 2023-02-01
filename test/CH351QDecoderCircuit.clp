@@ -1,3 +1,6 @@
+(defglobal MAIN
+           ; provide the ability to define at build time if A15 is high or low
+           ?*shift-to-upper-bank* = TRUE)
 ; This is another example of a real device I use
 ; It provides matching and decoding support for interfacing with a WCH351Q in IOEXP mode
 (definstances plds
@@ -19,6 +22,9 @@
                                          (*not A12)
                                          A13
                                          (*not A14)
-                                         (*not A15)))))
+                                         (if ?*shift-to-upper-bank* then
+                                           A15
+                                           else
+                                           (*not A15))))))
                   (output-path ch351decoder.pld))
               )
