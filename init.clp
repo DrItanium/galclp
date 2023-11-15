@@ -241,6 +241,27 @@
          (retract ?x)
          (modify-instance ?f
                           (children ?a ?c)))
+(defrule MAIN::fuse-structurally-similar-nodes
+         "(*and /A /A ...) => (*and /A ...) || (*and A A ...) => (*and A ...)"
+         ;(stage (current cleanup))
+         (annotation (target ?kind)
+                     (kind allow-fusion))
+         ?f <- (object (is-a and-expression)
+                       (name ?parent)
+                       (children $?a ?first $?c ?second $?e))
+         (object (is-a ?kind)
+                 (name ?first)
+                 (children ?k))
+         (object (is-a ?kind)
+                 (name ?second)
+                 (children ?k))
+         =>
+         (unmake-instance ?second)
+         (assert (removed ?second))
+         (modify-instance ?f
+                          (children ?a ?first ?c ?e)))
+
+;; These are bad rules since T and F will always be false which would eliminate the entire clause
 (defrule MAIN::cancel-out-true-false-pairs:following-expression
          "(*and A (*not A) ...) => (and ...)"
          ;(stage (current cleanup))
@@ -255,6 +276,7 @@
          (assert (removed ?d))
          (modify-instance ?f
                           (children ?a ?c ?e)))
+
 (defrule MAIN::cancel-out-true-false-pairs:leading-expression
          "(*and (*not A) A...) => (and ...)"
          ;(stage (current cleanup))
@@ -269,7 +291,6 @@
          (assert (removed ?b))
          (modify-instance ?f
                           (children ?a ?c ?e)))
-
 (defrule MAIN::cancel-out-true-false-pairs:following-expression-identity
          "(*and A (*not A) ...) => (and ...)"
          ;(stage (current cleanup))
@@ -307,23 +328,3 @@
                  (removed ?d))
          (modify-instance ?f
                           (children ?a ?c ?e)))
-(defrule MAIN::fuse-structurally-similar-nodes
-         "(*and /A /A ...) => (*and /A ...) || (*and A A ...) => (*and A ...)"
-         ;(stage (current cleanup))
-         (annotation (target ?kind)
-                     (kind allow-fusion))
-         ?f <- (object (is-a and-expression)
-                       (name ?parent)
-                       (children $?a ?first $?c ?second $?e))
-         (object (is-a ?kind)
-                 (name ?first)
-                 (children ?k))
-         (object (is-a ?kind)
-                 (name ?second)
-                 (children ?k))
-         =>
-         (unmake-instance ?second)
-         (assert (removed ?second))
-         (modify-instance ?f
-                          (children ?a ?first ?c ?e)))
-
