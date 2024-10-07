@@ -579,7 +579,8 @@
 
          =>
          (printout stdout 
-                   "Warning: pinout describes " ?index " pins but the chip " ?target " requires " ?index2 " pins to be described" crlf))
+                   "Warning: pinout describes " ?index " pins but the chip " ?target " requires " ?index2 " pins to be described" crlf)
+         (halt))
 
 (defrule MAIN::associate-pin-with-logic-device
          (declare (salience 10000))
@@ -605,7 +606,7 @@
          (object (is-a pld)
                  (name ?pld)
                  (title ?pld-title)
-                 (chip ?chip)
+                 (chip ?chip))
          (object (is-a logic-device)
                  (title ?chip)
                  (name ?device))
@@ -615,4 +616,45 @@
          (halt))
 
 
+(defrule MAIN::clk-keyword-used-in-bad-location
+         (stage (current inspect-pld))
+         (pin-information (title CLK)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?chip)
+                 (title ?pld-title))
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         (object (is-a pin)
+                 (parent ?device)
+                 (index ?index)
+                 (kind ~CLK/INPUT))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword CLK when it is not allowed" crlf)
+         (halt))
+
+(defrule MAIN::oe-keyword-used-in-bad-location
+         (stage (current inspect-pld))
+         (pin-information (title OE)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?chip)
+                 (title ?pld-title))
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         (object (is-a pin)
+                 (parent ?device)
+                 (index ?index)
+                 (kind ~OE/INPUT))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword OE when it is not allowed" crlf)
+         (halt))
 
