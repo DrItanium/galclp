@@ -21,14 +21,8 @@
 											  MA22
 											  MA23))
 							   (*assign (*not MADDR)
-										(*and (*eq SEL1 
-												   A20)
-											  (*eq SEL2 
-												   A21)
-											  (*eq SEL3 
-												   A22)
-											  (*eq SEL4 
-												   A23)))
+										(*eq4 SEL1 SEL2 SEL3 SEL4
+                                              A20 A21 A22 A23))
 				  )
 				   
                   (output-path RAMMatchCard.pld))
