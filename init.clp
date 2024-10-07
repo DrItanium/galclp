@@ -658,3 +658,89 @@
                    "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword OE when it is not allowed" crlf)
          (halt))
 
+
+(defrule MAIN::VCC-keyword-used-in-non-power-location
+         (stage (current inspect-pld))
+         (pin-information (title VCC)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?chip)
+                 (title ?pld-title))
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         (object (is-a pin)
+                 (parent ?device)
+                 (index ?index)
+                 (kind ~POWER))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword VCC when it is not allowed at this position" crlf)
+         (halt))
+
+(defrule MAIN::VCC-keyword-used-in-wrong-power-location
+         (stage (current inspect-pld))
+         (pin-information (title VCC)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?chip)
+                 (title ?pld-title))
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         (object (is-a pin)
+                 (parent ?device)
+                 (index ?index)
+                 (must-be ?expected&~VCC)
+                 (kind POWER))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword VCC when it should be " ?expected crlf)
+         (halt))
+
+(defrule MAIN::GND-keyword-used-in-non-power-location
+         (stage (current inspect-pld))
+         (pin-information (title GND)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?chip)
+                 (title ?pld-title))
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         (object (is-a pin)
+                 (parent ?device)
+                 (index ?index)
+                 (kind ~POWER))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword GND when it is not allowed at this position" crlf)
+         (halt))
+
+(defrule MAIN::GND-keyword-used-in-wrong-power-location
+         (stage (current inspect-pld))
+         (pin-information (title GND)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?chip)
+                 (title ?pld-title))
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         (object (is-a pin)
+                 (parent ?device)
+                 (index ?index)
+                 (must-be ?expected&~GND)
+                 (kind POWER))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " uses reserved keyword GND when it should be " ?expected crlf)
+         (halt))
