@@ -37,12 +37,13 @@
              )
 
 (deffacts MAIN::stages
-          (stage (current optimization-stage1)
-                 (rest flatten
-                   discovery
-                   correlate
-                   cleanup
-                   display)))
+          (stage (current inspect-pld)
+                 (rest optimization-stage1
+                       flatten
+                       discovery
+                       correlate
+                       cleanup
+                       display)))
 
 (deffacts MAIN::allowed-identity-conversions
           (convert-to-identity and-expression)
@@ -69,6 +70,174 @@
           (annotation (target identity-expression)
                       (kind allow-fusion)
                       (args)))
+
+(deftemplate MAIN::pin-information
+             (slot target
+                   (type LEXEME
+                         INSTANCE)
+                   (default ?NONE))
+             (slot title
+                   (type LEXEME)
+                   (default ?NONE))
+             (slot index
+                   (type INTEGER)
+                   (range 1 ?VARIABLE)
+                   (default ?NONE))
+             (slot clock-pin
+                   (type SYMBOL)
+                   (allowed-symbols UNKNOWN
+                                    FALSE
+                                    TRUE))
+             (slot connected
+                   (type SYMBOL)
+                   (allowed-symbols UNKNOWN
+                                    FALSE
+                                    TRUE))
+             (slot power-pin
+                   (type SYMBOL)
+                   (allowed-symbols UNKNOWN
+                                    FALSE
+                                    TRUE)))
+(defclass MAIN::pin
+  (is-a USER)
+  (slot parent
+        (type SYMBOL
+              INSTANCE)
+        (allowed-symbols FALSE))
+  (slot index
+        (type INTEGER)
+        (range 1 ?VARIABLE)
+        (default ?NONE))
+  (slot kind
+        (type SYMBOL)
+        (allowed-symbols INPUT
+                         I/O
+                         CLK/INPUT
+                         OE/INPUT
+                         POWER)
+        (default ?NONE))
+  (slot must-be
+        (type SYMBOL)
+        (default-dynamic FALSE)))
+
+
+(defclass MAIN::logic-device
+  (is-a USER)
+  (slot title
+        (type LEXEME)
+        (default ?NONE))
+  (slot pin-count
+        (type INTEGER)
+        (range 4 ?VARIABLE)
+        (default ?NONE))
+  (slot olmc-count
+        (type INTEGER)
+        (range 1 ?VARIABLE)
+        (default ?NONE))
+  (multislot pins
+             (type INSTANCE)
+             (default ?NONE)))
+             
+(definstances MAIN::supported-devices
+              (GAL22V10.P1 of pin (index 1) (kind CLK/INPUT))
+              (GAL22V10.P2 of pin (index 2) (kind INPUT))
+              (GAL22V10.P3 of pin (index 3) (kind INPUT))
+              (GAL22V10.P4 of pin (index 4) (kind INPUT))
+              (GAL22V10.P5 of pin (index 5) (kind INPUT))
+              (GAL22V10.P6 of pin (index 6) (kind INPUT))
+              (GAL22V10.P7 of pin (index 7) (kind INPUT))
+              (GAL22V10.P8 of pin (index 8) (kind INPUT))
+              (GAL22V10.P9 of pin (index 9) (kind INPUT))
+              (GAL22V10.P10 of pin (index 10) (kind INPUT))
+              (GAL22V10.P11 of pin (index 11) (kind INPUT))
+              (GAL22V10.P12 of pin (index 12) (kind POWER) (must-be GND))
+              (GAL22V10.P13 of pin (index 13) (kind INPUT))
+              (GAL22V10.P14 of pin (index 14) (kind I/O))
+              (GAL22V10.P15 of pin (index 15) (kind I/O))
+              (GAL22V10.P16 of pin (index 16) (kind I/O))
+              (GAL22V10.P17 of pin (index 17) (kind I/O))
+              (GAL22V10.P18 of pin (index 18) (kind I/O))
+              (GAL22V10.P19 of pin (index 19) (kind I/O))
+              (GAL22V10.P20 of pin (index 20) (kind I/O))
+              (GAL22V10.P21 of pin (index 21) (kind I/O))
+              (GAL22V10.P22 of pin (index 22) (kind I/O))
+              (GAL22V10.P23 of pin (index 23) (kind I/O))
+              (GAL22V10.P24 of pin (index 24) (kind POWER) (must-be VCC))
+
+              (GAL16V8.P1 of pin (index 1) (kind CLK/INPUT))
+              (GAL16V8.P2 of pin (index 2) (kind INPUT))
+              (GAL16V8.P3 of pin (index 3) (kind INPUT))
+              (GAL16V8.P4 of pin (index 4) (kind INPUT))
+              (GAL16V8.P5 of pin (index 5) (kind INPUT))
+              (GAL16V8.P6 of pin (index 6) (kind INPUT))
+              (GAL16V8.P7 of pin (index 7) (kind INPUT))
+              (GAL16V8.P8 of pin (index 8) (kind INPUT))
+              (GAL16V8.P9 of pin (index 9) (kind INPUT))
+              (GAL16V8.P10 of pin (index 10) (kind POWER) (must-be GND))
+              (GAL16V8.P11 of pin (index 11) (kind OE/INPUT))
+              (GAL16V8.P12 of pin (index 12) (kind POWER))
+              (GAL16V8.P13 of pin (index 13) (kind INPUT))
+              (GAL16V8.P14 of pin (index 14) (kind I/O))
+              (GAL16V8.P15 of pin (index 15) (kind I/O))
+              (GAL16V8.P16 of pin (index 16) (kind I/O))
+              (GAL16V8.P17 of pin (index 17) (kind I/O))
+              (GAL16V8.P18 of pin (index 18) (kind I/O))
+              (GAL16V8.P19 of pin (index 19) (kind I/O))
+              (GAL16V8.P20 of pin (index 20) (kind POWER) (must-be VCC))
+
+              (of logic-device
+                  (title GAL16V8)
+                  (pin-count 20)
+                  (olmc-count 8)
+                  (pins [GAL16V8.P1]
+                    [GAL16V8.P2]
+                    [GAL16V8.P3]
+                    [GAL16V8.P4]
+                    [GAL16V8.P5]
+                    [GAL16V8.P6]
+                    [GAL16V8.P7]
+                    [GAL16V8.P8]
+                    [GAL16V8.P9]
+                    [GAL16V8.P10]
+                    [GAL16V8.P11]
+                    [GAL16V8.P12]
+                    [GAL16V8.P13]
+                    [GAL16V8.P14]
+                    [GAL16V8.P15]
+                    [GAL16V8.P16]
+                    [GAL16V8.P17]
+                    [GAL16V8.P18]
+                    [GAL16V8.P19]
+                    [GAL16V8.P20]))
+              (of logic-device
+                  (title GAL22V10)
+                  (pin-count 24)
+                  (olmc-count 10)
+                  (pins [GAL22V10.P1]
+                    [GAL22V10.P2]
+                    [GAL22V10.P3]
+                    [GAL22V10.P4]
+                    [GAL22V10.P5]
+                    [GAL22V10.P6]
+                    [GAL22V10.P7]
+                    [GAL22V10.P8]
+                    [GAL22V10.P9]
+                    [GAL22V10.P10]
+                    [GAL22V10.P11]
+                    [GAL22V10.P12]
+                    [GAL22V10.P13]
+                    [GAL22V10.P14]
+                    [GAL22V10.P15]
+                    [GAL22V10.P16]
+                    [GAL22V10.P17]
+                    [GAL22V10.P18]
+                    [GAL22V10.P19]
+                    [GAL22V10.P20]
+                    [GAL22V10.P21]
+                    [GAL22V10.P22]
+                    [GAL22V10.P23]
+                    [GAL22V10.P24]))
+                    )
 
 (include logic/parent_ident/logic.clp)
 (include logic/pld/logic.clp)
@@ -328,3 +497,122 @@
                  (removed ?d))
          (modify-instance ?f
                           (children ?a ?c ?e)))
+(defrule MAIN::decompose-pld-pinout
+         (stage (current inspect-pld))
+         (object (is-a pld)
+                 (pinout $?pinout)
+                 (name ?name))
+         =>
+         (bind ?pins
+               (create$))
+         (progn$ (?line $?pinout) 
+                 (bind ?pins 
+                       ?pins
+                       (explode$ ?line)))
+         ; at this point, we have a proper set of pins based on the GALASM layout
+         (progn$ (?pin $?pins)
+                 (assert (pin-information (target ?name)
+                                          (title ?pin)
+                                          (index ?pin-index)))))
+
+(defrule MAIN::pin-is-connected
+         (stage (current inspect-pld))
+         ?f <- (pin-information (title ?title)
+                                (connected UNKNOWN))
+         =>
+         (modify ?f
+                 (connected (neq ?title
+                                 NC))))
+
+(defrule MAIN::is-power-pin
+         (stage (current inspect-pld))
+         ?f <- (pin-information (title ?title)
+                                (power-pin UNKNOWN))
+         =>
+         (modify ?f 
+                 (power-pin (not (neq ?title 
+                                      VCC 
+                                      GND)))))
+
+(defrule MAIN::is-clock-pin
+         (stage (current inspect-pld))
+         ?f <- (pin-information (title ?title)
+                                (index ?index)
+                                (clock-pin UNKNOWN))
+         =>
+         (modify ?f
+                 (clock-pin (and (eq ?title 
+                                     CLK)
+                                 (= ?index 
+                                    1)))))
+
+
+(defrule MAIN::unknown-target-device
+         (stage (current inspect-pld))
+         (pin-information (title VCC)
+                          (power-pin TRUE)
+                          (target ?pld)
+                          (index ?index))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?target))
+         (not (object (is-a logic-device)
+                      (title ?target)
+                      (pin-count ?index)))
+         =>
+         (printout stdout 
+                   "Warning: given type: " ?target " is not a known chip type " crlf))
+(defrule MAIN::pinout-count-doesnt-match-chip-pins
+         (stage (current inspect-pld))
+         (pin-information (title VCC)
+                          (power-pin TRUE)
+                          (target ?pld)
+                          (index ?index))
+         (object (is-a pld)
+                 (name ?pld)
+                 (chip ?target))
+         (object (is-a logic-device)
+                 (title ?target)
+                 (pin-count ?index2))
+         (test (neq ?index
+                    ?index2))
+
+         =>
+         (printout stdout 
+                   "Warning: pinout describes " ?index " pins but the chip " ?target " requires " ?index2 " pins to be described" crlf))
+
+(defrule MAIN::associate-pin-with-logic-device
+         (declare (salience 10000))
+         (stage (current inspect-pld))
+         ?f <- (object (is-a pin)
+                       (parent FALSE)
+                       (name ?pin))
+         (object (is-a logic-device)
+                 (pins $? ?pin $?)
+                 (name ?device))
+         =>
+         (modify-instance ?f 
+                          (parent ?device)))
+(defrule MAIN::pin-names-do-not-match
+         (stage (current inspect-pld))
+         (object (is-a pin)
+                 (parent ?device&~FALSE)
+                 (must-be ?title&~FALSE)
+                 (index ?index))
+         (pin-information (title ?bad-title&~?title)
+                          (index ?index)
+                          (target ?pld))
+         (object (is-a pld)
+                 (name ?pld)
+                 (title ?pld-title)
+                 (chip ?chip)
+         (object (is-a logic-device)
+                 (title ?chip)
+                 (name ?device))
+         =>
+         (printout stderr
+                   "ERROR: pin " ?index " of " ?pld-title " must be " ?title " but is " ?bad-title crlf)
+         (halt))
+
+
+
