@@ -182,89 +182,89 @@
 
 ; Extra logical constructs to help us out
 
-(deffunction *xor
+(deffunction MAIN::*xor
              (?a ?b)
              (*or (*and (*not ?a) ?b)
                   (*and ?a (*not ?b))))
-(deffunction *xnor 
+(deffunction MAIN::*xnor 
              (?a ?b)
              (*or (*and ?a ?b)
                   (*and (*not ?a)
                         (*not ?b))))
-(deffunction *neq
+(deffunction MAIN::*neq
              (?a ?b)
              (*xor ?a ?b))
-(deffunction *eq
+(deffunction MAIN::*eq
              (?a ?b)
              (*xnor ?a ?b))
 
-(deffunction *true
+(deffunction MAIN::*true
              (?a)
              (*eq ?a ?a))
-(deffunction *false
+(deffunction MAIN::*false
              (?a)
              (*neq ?a ?a))
-(deffunction *nand
+(deffunction MAIN::*nand
              (?a ?b $?rest)
              (*not (*and ?a 
                          ?b 
                          $?rest)))
-(deffunction *nor
+(deffunction MAIN::*nor
              (?a ?b $?rest)
              (*not (*or ?a 
                         ?b 
                         $?rest)))
-(deffunction *imply
+(deffunction MAIN::*imply
              (?p ?q)
              (*or (*not ?p)
                   ?q))
-(deffunction *nimply
+(deffunction MAIN::*nimply
              (?p ?q)
              (*and ?p
                    (*not ?q)))
-(deffunction *converse-nonimplication
+(deffunction MAIN::*converse-nonimplication
              (?p ?q)
              (*and (*not ?p)
                    ?q))
-(deffunction *eq2
+(deffunction MAIN::*eq2
              (?a0 ?a1
                   ?b0 ?b1)
              (*and (*eq ?a0 ?b0)
                    (*eq ?a1 ?b1)))
-(deffunction *eq3
+(deffunction MAIN::*eq3
              (?a0 ?a1 ?a2
                   ?b0 ?b1 ?b2)
              (*and (*eq2 ?a0 ?a1
                          ?b0 ?b1)
                    (*eq ?a2 ?b2)))
-(deffunction *eq4
+(deffunction MAIN::*eq4
              (?a0 ?a1 ?a2 ?a3
                   ?b0 ?b1 ?b2 ?b3)
              (*and (*eq3 ?a0 ?a1 ?a2
                          ?b0 ?b1 ?b2)
                    (*eq ?a3 ?b3)))
 ;; @todo add support for multiple parents for sub expressions
-(deffunction *mux1->2
+(deffunction MAIN::*mux1->2
              (?cond ?a ?b)
              (*or (*and (*not ?cond) ?a)
                   (*and ?cond ?b)))
 
-(deffunction *mux2->4
+(deffunction MAIN::*mux2->4
              (?c0 ?c1 ?a ?b ?c ?d)
              (*mux1->2 ?c1
                        (*mux1->2 ?c0 ?a ?b)
                        (*mux1->2 ?c0 ?c ?d)))
-(deffunction *mux3->8
+(deffunction MAIN::*mux3->8
              (?c0 ?c1 ?c2 ?a ?b ?c ?d ?e ?f ?g ?h)
              (*mux1->2 ?c2
                        (*mux2->4 ?c0 ?c1 ?a ?b ?c ?d)
                        (*mux2->4 ?c0 ?c1 ?e ?f ?g ?h)))
 
-(deffunction *half-adder
+(deffunction MAIN::*half-adder
              (?a ?b)
              (create$ (*xor ?a ?b)
                       (*and ?a ?b)))
-(deffunction *full-adder
+(deffunction MAIN::*full-adder
              (?a ?b ?c)
              (bind ?ha0 
                    (*half-adder ?a 
@@ -278,7 +278,7 @@
                       (*or (nth$ 2 ?ha1)
                            (nth$ 2 ?ha0))))
 
-(deffunction *mul2 
+(deffunction MAIN::*mul2 
              (?a0 ?a1
                   ?b0 ?b1)
              (bind ?p0
@@ -299,7 +299,7 @@
                       (nth$ 1 ?ha1)
                       (nth$ 2 ?ha1)))
 
-(deffunction *add2-ripple
+(deffunction MAIN::*add2-ripple
              (?a0 ?a1 
               ?b0 ?b1
               ?c-in)
